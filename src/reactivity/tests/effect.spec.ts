@@ -1,4 +1,4 @@
-import { effect } from '../effect'
+import { effect, stop } from '../effect'
 import { reactive } from '../reactive'
 
 describe("effect", () => {
@@ -92,5 +92,53 @@ describe("effect", () => {
     // 当执行 run 方法时，执行 fn()
     run()
     expect(dummy).toBe(2)
+  })
+
+
+  // 实现 stop
+  it("stop", () => {
+    // 1. stop 是 effect 内部实现的函数
+    // 2. stop() 接收 runner 参数， 调用后 响应式对象值不会再发生改变
+    // 3. 但是直接调用 runner() 还是会让响应式对象发生改变
+    
+    // 定义响应式
+    let dummy
+    let obj = reactive({props: 1})
+    const runner = effect(() => {
+      dummy = obj.props
+    })
+    // update
+    obj.props = 2
+    expect(dummy).toBe(2)
+    // 执行 stop() 时 dummy 值不会变
+    stop(runner)
+    obj.props = 3
+    expect(dummy).toBe(2)
+    
+    // 执行 runner() , 触发更新
+    runner()
+    expect(dummy).toBe(3)
+  })
+
+
+  // 实现 onStop()， 也就是 stop() 的回调函数
+  // 1. onStop() 是 effect 的第二个参数,  onStop() 是一个函数
+  // 2. 当 stop() 执行完后， onStop() 会被执行  
+
+  it('onStop()', () => {
+    // 定义响应式
+    let dummy
+    let obj = reactive({foo: 1})
+    // 定义 onStop()
+    const onStop = jest.fn()
+    const runner = effect(
+      () => { dummy = obj.foo },
+      { onStop } // onStop() 第二个参数
+    )
+
+    // 执行 stop()
+    stop(runner)
+    // onStop() 被执行一次, stop() 的回调函数
+    expect(onStop).toHaveBeenCalledTimes(1)
   })
 })
