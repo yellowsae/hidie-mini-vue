@@ -46,4 +46,51 @@ describe("effect", () => {
     expect(foo).toBe(12)  // 因为 调用 runner 就相当于调用 effect() -> fn()
     expect(r).toBe("foo")
   })
+
+
+  // 实现 scheduler, 
+  // scheduler的函数 是 effect 函数的第二个参数
+  // scheduler 定义是一个函数
+  // scheduler 一开始不会被调用， 也就是 effect初始化 fn() 时候，不会调用 scheduler()
+  // 当 修改，更新响应式对象值时候，修改值, 会执行 scheduler 一次。并且 fn() 不会被执行， 也就是不会执行 effect 的第一个参数
+  // 当 执行 run() 的时候， 执行 fn() ， run() 就是 effect 返回出来的 runner() 
+  // 当 执行 完 run(),  会执行fn() ，响应式的 发生改变
+
+  it("scheduler", () => {
+    // 1. 通过effect 的第二个参数给定了一个 scheduler 的 fn
+    // 2. 当 effect 第一次执行的时候， 还会执行fn
+    // 3. 当 响应式对象 set update 时， 不会执行 fn ， 而是执行 scheduler
+    // 4. 如果说当执行 runner 的时候， 会再次执行 fn
+    let dummy
+    let run:any
+    // jest.fn(xxx) 定义一个函数
+    const scheduler = jest.fn(() => {
+      // run 就是 runner
+      run = runner
+    })
+    // 定义一个响应式对象
+    const obj = reactive({
+      foo: 1
+    })
+
+    // effect 返回出来的 runner, 将它赋值给 run
+    let runner = effect(() => {
+      dummy = obj.foo
+    }, { scheduler })
+
+    // effect 一开始执行 fn()
+    expect(dummy).toBe(1)
+    // scheduler 一开始不会被调用
+    expect(scheduler).not.toHaveBeenCalled()
+
+    // update
+    obj.foo++ //  set -> 在 trigger 函数去触发 scheduler()
+    // scheduler 被调用一次
+    expect(scheduler).toHaveBeenCalledTimes(1)
+    // 并且 dummy 值没有变化, 说明响应式对象的值发生改变了，scheduler 会被调用
+    expect(dummy).toBe(1)
+    // 当执行 run 方法时，执行 fn()
+    run()
+    expect(dummy).toBe(2)
+  })
 })
