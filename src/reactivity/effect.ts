@@ -7,7 +7,10 @@ class ReactiveEffect {
 
   run() {
     activeEffect = this
-    this._fn()
+    // this._fn()
+
+    // 当调用 fn() 时候，会有一个返回值，把返回值给返回出去
+    return this._fn()
   }
 }
 
@@ -63,5 +66,11 @@ export function effect(fn) {
   // fn 
   // 创建 effect
   const _effect = new ReactiveEffect(fn)
+
+  // effect() 初始时候 进行调用 run() 
   _effect.run()
+
+  // 返回 fn(),  就是 runner
+  // 因为 run() 方法中使用到了 activeEffect ，会出现一个 this 指向的问题， 使用 bind() 将 this 指向 _effect
+  return _effect.run.bind(_effect)
 }
