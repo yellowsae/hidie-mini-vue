@@ -1,4 +1,5 @@
 import { track, trigger } from './effect';
+import { ReactiveFlags } from './reactive';
 
 
 // 将 reactive 的代码抽离出来
@@ -15,8 +16,18 @@ const readonlyGet = createGetter(true)
 
 function createGetter(isReadonly = false) {  // 默认参数，执行是不是 readonly
   return function get (target, key) {
-    let Res = Reflect.get(target, key)
 
+    // 这里判断是否是响应式对象 还是  readonly 对象
+    if (key === ReactiveFlags.IS_REACTIVE) {
+      // 判断是否响应式对象
+      return !isReadonly
+    }else if (key === ReactiveFlags.IS_READONLY) {
+      // 判断是否 是 readonly
+      return isReadonly
+    }
+
+
+    let Res = Reflect.get(target, key)
     // 需要区分执行这个 get() 是 reactive 还是 readonly
     if (!isReadonly) {
       // 如果不是 readonly，执行 track() 依赖收集

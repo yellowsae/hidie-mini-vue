@@ -1,5 +1,5 @@
 
-import { readonly } from "../reactive"
+import { isReadonly, readonly } from "../reactive"
 
 describe('readonly', () => {
 
@@ -27,5 +27,17 @@ describe('readonly', () => {
 
     user.age = 11
     expect(console.warn).toBeCalled()
+  })
+
+
+  // 3. 实现 判断是否是 readonly 对象
+  // isReadonly
+  it('isReadonly', () => {
+    const original = { foo: 1, bar: { baz: 2 } }
+    const wrapper = readonly(original)
+
+    // 判断 readonly
+    expect(isReadonly(wrapper)).toBe(true)
+    expect(isReadonly(original)).toBe(false)
   })
 })
