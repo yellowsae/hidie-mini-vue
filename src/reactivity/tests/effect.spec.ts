@@ -112,7 +112,7 @@ describe("effect", () => {
     expect(dummy).toBe(2)
     // 执行 stop() 时 dummy 值不会变
     stop(runner)
-    obj.props = 3
+    obj.props++
     expect(dummy).toBe(2)
     
     // 执行 runner() , 触发更新
