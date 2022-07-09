@@ -102,7 +102,7 @@ describe("effect", () => {
     // 3. 但是直接调用 runner() 还是会让响应式对象发生改变
     
     // 定义响应式
-    let dummy
+    let dummy: any
     let obj = reactive({props: 1})
     const runner = effect(() => {
       dummy = obj.props
