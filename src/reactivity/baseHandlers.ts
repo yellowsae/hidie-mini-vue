@@ -1,4 +1,4 @@
-import { isObject } from '../shared';
+import { extend, isObject } from '../shared';
 import { track, trigger } from './effect';
 import { reactive, ReactiveFlags, readonly } from './reactive';
 
@@ -10,12 +10,13 @@ import { reactive, ReactiveFlags, readonly } from './reactive';
 const get = createGetter()
 const set = createSetter()
 const readonlyGet = createGetter(true)
-
+// 把第二个参数传给他
+const shallowReadonlyGet = createGetter(true,true)
 
 
 // 重构 get 函数 
 
-function createGetter(isReadonly = false) {  // 默认参数，执行是不是 readonly
+function createGetter(isReadonly = false, shallowReadonly = false) {  // 默认参数，执行是不是 readonly, shallowReadonly  设置默认参数 定义 shallowReadonlyGetter 的参数
   return function get (target, key) {
 
     // 这里判断是否是响应式对象 还是  readonly 对象
@@ -29,6 +30,15 @@ function createGetter(isReadonly = false) {  // 默认参数，执行是不是 r
 
     // 返回出去的值
     let Res = Reflect.get(target, key)
+
+
+    // 实现 shallowReadonly 功能
+    // 1. 它不需要执行 嵌套功能
+    // 2. 它不需要执行 trick 收集依赖 功能
+    // 也就是直接返回  Res
+    if (shallowReadonly) {
+      return Res
+    }
 
     
     // 可以进行一个判断,实现 reactive 嵌套功能
@@ -81,3 +91,10 @@ export const readonlyHandlers = {
     return true
   },
 }
+
+// extend 合并对象
+// shallowReadonlyHandlers() 的 getter 和 setter
+export const shallowReadonlyHandlers =  extend({}, readonlyHandlers , {
+  get: shallowReadonlyGet,
+  // shallowReadonlyHandlers 和 readonlyHandlers 的 setter 函数是一样的, 使用 合并对象, 达到代码复用
+})

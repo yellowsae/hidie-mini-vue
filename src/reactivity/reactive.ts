@@ -1,4 +1,40 @@
-import { mutableHandlers, readonlyHandlers } from "./baseHandlers"
+import { mutableHandlers, readonlyHandlers, shallowReadonlyHandlers } from "./baseHandlers"
+
+
+// 使用枚举方式， 定义 isReactive 的值
+export const enum ReactiveFlags {
+  IS_REACTIVE = '__v_isReactive',
+  IS_READONLY = '__v_isReadonly',
+}
+
+
+
+// isReactive 判断是否是响应式对象
+export function isReactive(value) {
+
+  // 返回一个布尔值 
+  // 实现思路：
+  // 1. 当读取 value 属性时，触发 get() 操作
+  // 2. 在 get() 中，区分  value 是否是响应式对象  | 还是 readonly 对象
+  
+  // 使用 枚举 定义 isReactive 的值
+
+  // / 这里如果当 调用的对象 不是一个 reactive 对象，就不会去调用 getter(),  
+  //  value[ReactiveFlags.IS_REACTIVE] 就不会有值，所以这里返回的是一个 undefined
+
+  //解决： 加上 !!xxxx  将undefined 转为 false 
+  return !!value[ReactiveFlags.IS_REACTIVE]
+}
+
+
+// isReadonly 判断是否是 readonly 对象
+export function isReadonly(value) {
+  // 逻辑基本和 isReactive 一样 
+  // 读取 value属性时，会触发 get() 操作, 在 get() 中，区分 value 是否是响应式对象 | 还是 readonly 对象
+  return !!value[ReactiveFlags.IS_READONLY]
+}
+
+
 
 // 导出 reactive() 函数
 // 接收的响应式对象参数 raw
@@ -38,42 +74,6 @@ export function reactive(raw) {
 }
 
 
-
-// 使用枚举方式， 定义 isReactive 的值
-export const enum ReactiveFlags {
-  IS_REACTIVE = '__v_isReactive',
-  IS_READONLY = '__v_isReadonly',
-}
-
-
-
-// isReactive 判断是否是响应式对象
-export function isReactive(value) {
-
-  // 返回一个布尔值 
-  // 实现思路：
-  // 1. 当读取 value 属性时，触发 get() 操作
-  // 2. 在 get() 中，区分  value 是否是响应式对象  | 还是 readonly 对象
-  
-  // 使用 枚举 定义 isReactive 的值
-
-  // / 这里如果当 调用的对象 不是一个 reactive 对象，就不会去调用 getter(),  
-  //  value[ReactiveFlags.IS_REACTIVE] 就不会有值，所以这里返回的是一个 undefined
-
-  //解决： 加上 !!xxxx  将undefined 转为 false 
-  return !!value[ReactiveFlags.IS_REACTIVE]
-}
-
-
-// isReadonly 判断是否是 readonly 对象
-export function isReadonly(value) {
-  // 逻辑基本和 isReactive 一样 
-  // 读取 value属性时，会触发 get() 操作, 在 get() 中，区分 value 是否是响应式对象 | 还是 readonly 对象
-  return !!value[ReactiveFlags.IS_READONLY]
-}
-
-
-
 export function readonly (raw) {
   // return new Proxy(raw, {
   //   // get (target, key) {
@@ -94,6 +94,11 @@ export function readonly (raw) {
 
   //  抽离到 baseHandlers.ts
   return createActiveObject(raw, readonlyHandlers)
+}
+
+
+export function shallowReadonly(raw) {
+  return createActiveObject(raw, shallowReadonlyHandlers)
 }
 
 
