@@ -34,6 +34,10 @@ export function isReadonly(value) {
   return !!value[ReactiveFlags.IS_READONLY]
 }
 
+// isProxy 判断value是不是 readonly | reactive
+export function isProxy(value) {
+  return isReactive(value) ||  isReadonly(value)
+}
 
 
 // 导出 reactive() 函数

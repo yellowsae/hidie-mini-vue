@@ -1,5 +1,5 @@
 
-import { isReadonly, readonly } from "../reactive"
+import { isProxy, isReadonly, readonly } from "../reactive"
 
 describe('readonly', () => {
 
@@ -53,5 +53,14 @@ describe('readonly', () => {
     expect(isReadonly(wrapper.array)).toBe(true)
     // 3. 嵌套的 array 的第一个元素，因该也是一个 readonly 对象
     expect(isReadonly(wrapper.array[0])).toBe(true)
+  })
+
+
+  // 5. 实现 isProxy 
+  // isProxy 判断对象是否  reactive | readonly
+  it('nested reactive', () => {
+    const original = { foo: 1, bar: { baz: 2 }, array: [{ bar: 2 }] }
+    const observed = readonly(original)
+    expect(isProxy(observed)).toBe(true)
   })
 })
