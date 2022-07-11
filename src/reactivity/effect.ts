@@ -1,5 +1,14 @@
 import { extend } from "../shared"
 
+
+// 定义的全局变量
+// TODO: activeEffect:  定义的全局遍历，用于保存当前正在执行的 ReactiveEffect 对象
+let activeEffect
+
+// TODO: shouldTrack 判断应该执行 依赖收集, 在 getter() 时候进行调用
+let shouldTrack
+
+
 class ReactiveEffect {
   private _fn: any
   // 声明 deps 属性， 并且设置为一个数组, 存储所有的 dep 对象
@@ -14,11 +23,25 @@ class ReactiveEffect {
   }
 
   run() {
-    activeEffect = this
-    // this._fn()
 
+    // 因为执行 run() 方法会依赖收集,
+    // 执行 stop() 不需要进行依赖的收集, 可以直接在run 方法这里判断, 做操作
+    // active 判断 stop() 是否被调用
+    if(!this.active) {  // 如果  active 为 false, 说明 stop() 被调用过
+      // 不需要进行依赖收集
+      return this._fn()
+    }
+
+    // 设置 shouldTrack 的状态 为 true, 进行依赖收集
+    shouldTrack = true 
+    activeEffect = this
+    // 调用 fn
+    const result = this._fn()
+
+    // reset (重新来过):  设置 shouldTrack 的状态 为 false , 关闭依赖收集  -> 在 track 执行 收集依赖前把他给返回 
+    shouldTrack = false
     // 当调用 fn() 时候，会有一个返回值，把返回值给返回出去
-    return this._fn()
+    return result
   }
 
 
@@ -48,6 +71,7 @@ export function cleanupEffect(effect) {
     // 执行清空，dep 删除 当前 ReactiveEffect 对象
     dep.delete(effect)
   })
+  effect.deps.length = 0
 }
 
 
@@ -57,6 +81,13 @@ export function cleanupEffect(effect) {
 const targetMap = new Map()
 
 export function track(target, key) { // 接收的参数就是 target : 对象 , key: 读取的属性值 
+
+
+  // 重构:  把判断的逻辑提上来, 这里判断如果不需要进行依赖收集, 就直接返回
+  // 封装为 isTracking 函数
+  if(!isTracking()) return
+  
+
   // 实现一个 target -> key -> dep -> ReactiveEffect  的存储关系
 
   let depsMap = targetMap.get(target)
@@ -74,8 +105,11 @@ export function track(target, key) { // 接收的参数就是 target : 对象 , 
     depsMap.set(key, dep)
   }
 
-  // 如果  activeEffect 没有的话，直接返回，当执行 get 操作时候 , track 直接返回，不再执行下面的代码
-  if(!activeEffect) return
+
+  // 重构2
+  // 如果 dep这个Set() 中 有 activeEffect , 直接 true 
+  // 因为 dep 已经有 相应的依赖了, 不要重复去收集
+  if (dep.has(activeEffect)) return
 
   // 把 ReactiveEffect 收集到 dep 中
   dep.add(activeEffect) // activeEffect 是 ReactiveEffect 类的实例
@@ -94,8 +128,20 @@ export function track(target, key) { // 接收的参数就是 target : 对象 , 
     // 如果  activeEffect 没有的话，直接 返回
     if(!activeEffect) return
    */
-
 }
+
+
+// 封装为一个函数 
+function isTracking() {
+  // // 如果  activeEffect 没有的话，直接返回，当执行 get 操作时候 , track 直接返回，不再执行下面的代码
+  // if(!activeEffect) return
+  // // 如果 shouldTrack 的状态为 false 不进行依赖收集
+  // if(!shouldTrack) return
+
+  // 如果有一个 为 false 就不要执行收集依赖 
+  return shouldTrack &&  activeEffect !== undefined 
+}
+
 
 
 // TODO: 触发依赖  执行依赖 run() 方法
@@ -124,8 +170,7 @@ export function trigger(target, key) {
 }
 
 
-// TODO: activeEffect:  定义的全局遍历，用于保存当前正在执行的 ReactiveEffect 对象
-let activeEffect
+
 export function effect(fn, options: any = {}) {
   // fn ,   // options 表示第二个参数
   // 创建 effect

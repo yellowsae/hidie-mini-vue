@@ -112,6 +112,16 @@ describe("effect", () => {
     expect(dummy).toBe(2)
     // 执行 stop() 时 dummy 值不会变
     stop(runner)
+
+    // 出现问题： 这里执行 obj.props = obj.props + 1
+    //  相当于执行  getter 和 setter
+    // getter的之后会收集依赖， 而执行 stop(runner) 时候，清除掉了依赖，
+    // 所以执行 setter 触发执行 fn()， ->  dummy = obj.props  = 2， 加 1 后得到3 
+
+
+    // 解决问题: 
+      // 1. 只需要在它收集依赖时候, 判断它是不是执行 stop() 的操作, 如果是 stop() 的操作，就不要收集依赖, 直接执行 fn()
+      //    如果不是 stop() 继续执行 收集依赖然后执行 fn()
     obj.props++
     expect(dummy).toBe(2)
     
