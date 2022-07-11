@@ -40,4 +40,18 @@ describe('readonly', () => {
     expect(isReadonly(wrapper)).toBe(true)
     expect(isReadonly(original)).toBe(false)
   })
+
+
+  // 4. 嵌套的 readonly
+  it('nested readonly', () => {
+    const original = { foo: 1, bar: { baz: 2 }, array: [{ bar: 2 } ] }
+    const wrapper = readonly(original)
+
+    // 1. 嵌套的 bar 因该也是一个 readonly 对象
+    expect(isReadonly(wrapper.bar)).toBe(true)
+    // 2. 嵌套的 array 因该也是一个 readonly 对象
+    expect(isReadonly(wrapper.array)).toBe(true)
+    // 3. 嵌套的 array 的第一个元素，因该也是一个 readonly 对象
+    expect(isReadonly(wrapper.array[0])).toBe(true)
+  })
 })

@@ -1,5 +1,6 @@
+import { isObject } from '../shared';
 import { track, trigger } from './effect';
-import { ReactiveFlags } from './reactive';
+import { reactive, ReactiveFlags, readonly } from './reactive';
 
 
 // 将 reactive 的代码抽离出来
@@ -26,8 +27,21 @@ function createGetter(isReadonly = false) {  // 默认参数，执行是不是 r
       return isReadonly
     }
 
-
+    // 返回出去的值
     let Res = Reflect.get(target, key)
+
+    
+    // 可以进行一个判断,实现 reactive 嵌套功能
+    // 1. 判断 Res 是否是一个 Object 
+    if(isObject(Res)) {
+      // 如果是 object  执行 reactive 函数 , 达到嵌套的效果
+      // 返回 reactive(Res) 的结果, 也就是 嵌套的响应式对象 添加了 getter 和 setter 的结果
+      // 判断isReadonly 是否是 readonly 还是  reactive, 然后执行它们之间的嵌套
+      return isReadonly ? readonly(Res) :  reactive(Res)
+    }
+
+
+
     // 需要区分执行这个 get() 是 reactive 还是 readonly
     if (!isReadonly) {
       // 如果不是 readonly，执行 track() 依赖收集
