@@ -1,4 +1,4 @@
-import { mutableHandlers, readonlyHandlers, shallowReadonlyHandlers } from "./baseHandlers"
+import { mutableHandlers, readonlyHandlers, shallowReadonlyHandlers, shallowReactiveHandlers } from "./baseHandlers"
 
 
 // 使用枚举方式， 定义 isReactive 的值
@@ -16,7 +16,7 @@ export function isReactive(value) {
   // 实现思路：
   // 1. 当读取 value 属性时，触发 get() 操作
   // 2. 在 get() 中，区分  value 是否是响应式对象  | 还是 readonly 对象
-  
+
   // 使用 枚举 定义 isReactive 的值
 
   // / 这里如果当 调用的对象 不是一个 reactive 对象，就不会去调用 getter(),  
@@ -36,13 +36,13 @@ export function isReadonly(value) {
 
 // isProxy 判断value是不是 readonly | reactive
 export function isProxy(value) {
-  return isReactive(value) ||  isReadonly(value)
+  return isReactive(value) || isReadonly(value)
 }
 
 
 // 导出 reactive() 函数
 // 接收的响应式对象参数 raw
-export function reactive(raw) { 
+export function reactive(raw) {
 
   // // 返回一个 Proxy 代理对象，代理 raw 属性
   // return new Proxy(raw, {
@@ -60,7 +60,7 @@ export function reactive(raw) {
   //   // set(target, key, value) {
   //   //   // 修改变化的数据
   //   //   let Res = Reflect.set(target, key, value)
-      
+
   //   //   // TODO: 触发依赖  这个核心
   //   //   trigger(target, key)
   //   //   return Res
@@ -71,14 +71,14 @@ export function reactive(raw) {
   //   set: createSetter()
   // })
 
-  
+
   // return new Proxy(raw, mutableHandlers)
-  
+
   return createActiveObject(raw, mutableHandlers)
 }
 
 
-export function readonly (raw) {
+export function readonly(raw) {
   // return new Proxy(raw, {
   //   // get (target, key) {
   //   //   let Res = Reflect.get(target, key)
@@ -105,6 +105,9 @@ export function shallowReadonly(raw) {
   return createActiveObject(raw, shallowReadonlyHandlers)
 }
 
+export function shallowReactive(raw) {
+  return createActiveObject(raw, shallowReactiveHandlers)
+}
 
 // 把 new Proxy 抽离封装 为一个函数
 function createActiveObject(raw: any, baseHandlers: any) {
