@@ -27,13 +27,13 @@ class ReactiveEffect {
     // 因为执行 run() 方法会依赖收集,
     // 执行 stop() 不需要进行依赖的收集, 可以直接在run 方法这里判断, 做操作
     // active 判断 stop() 是否被调用
-    if(!this.active) {  // 如果  active 为 false, 说明 stop() 被调用过
+    if (!this.active) {  // 如果  active 为 false, 说明 stop() 被调用过
       // 不需要进行依赖收集
       return this._fn()
     }
 
     // 设置 shouldTrack 的状态 为 true, 进行依赖收集
-    shouldTrack = true 
+    shouldTrack = true
     activeEffect = this
     // 调用 fn
     const result = this._fn()
@@ -85,8 +85,8 @@ export function track(target, key) { // 接收的参数就是 target : 对象 , 
 
   // 重构:  把判断的逻辑提上来, 这里判断如果不需要进行依赖收集, 就直接返回
   // 封装为 isTracking 函数
-  if(!isTracking()) return
-  
+  if (!isTracking()) return
+
 
   // 实现一个 target -> key -> dep -> ReactiveEffect  的存储关系
 
@@ -106,17 +106,9 @@ export function track(target, key) { // 接收的参数就是 target : 对象 , 
   }
 
 
-  // 重构2
-  // 如果 dep这个Set() 中 有 activeEffect , 直接 true 
-  // 因为 dep 已经有 相应的依赖了, 不要重复去收集
-  if (dep.has(activeEffect)) return
-
-  // 把 ReactiveEffect 收集到 dep 中
-  dep.add(activeEffect) // activeEffect 是 ReactiveEffect 类的实例
-
-  // 使用 activeEffect 存储 dep, 达到 执行stop() 删除 dep 的目的 <-> 也就是 ReactiveEffect 类的实例 
-  activeEffect.deps.push(dep)
-
+  // 抽离 依赖收集的逻辑
+  // trackEffects
+  trackEffects(dep)
 
   /**
    * 出现一个问题： 有可能activeEffects是一个 undefined 
@@ -131,15 +123,31 @@ export function track(target, key) { // 接收的参数就是 target : 对象 , 
 }
 
 
+// 把执行依赖收集的逻辑抽离，同样方便 ref 使用
+export function trackEffects(dep) {
+  // 重构2
+  // 如果 dep这个Set() 中 有 activeEffect , 直接 true 
+  // 因为 dep 已经有 相应的依赖了, 不要重复去收集
+  if (dep.has(activeEffect)) return
+
+  // 把 ReactiveEffect 收集到 dep 中
+  dep.add(activeEffect) // activeEffect 是 ReactiveEffect 类的实例
+
+  // 使用 activeEffect 存储 dep, 达到 执行stop() 删除 dep 的目的 <-> 也就是 ReactiveEffect 类的实例 
+  activeEffect.deps.push(dep)
+
+}
+
+
 // 封装为一个函数 
-function isTracking() {
+export function isTracking() {
   // // 如果  activeEffect 没有的话，直接返回，当执行 get 操作时候 , track 直接返回，不再执行下面的代码
   // if(!activeEffect) return
   // // 如果 shouldTrack 的状态为 false 不进行依赖收集
   // if(!shouldTrack) return
 
   // 如果有一个 为 false 就不要执行收集依赖 
-  return shouldTrack &&  activeEffect !== undefined 
+  return shouldTrack && activeEffect !== undefined
 }
 
 
@@ -155,6 +163,11 @@ export function trigger(target, key) {
   let dep = depsMap.get(key)
 
   // 3. 遍历 dep, 执行 触发依赖 run() 方法
+  triggerEffects(dep) // 抽离出触发依赖的方法
+}
+
+// 收集 执行依赖的逻辑抽离，同样方便 ref 使用
+export function triggerEffects(dep) {
   for (const effect of dep) { // 循环  dep 中的 ReactiveEffect
 
     // 这里判断 是否有 scheduler 参数
