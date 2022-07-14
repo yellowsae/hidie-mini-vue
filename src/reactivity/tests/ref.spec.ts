@@ -2,7 +2,7 @@
 
 import { effect } from '../effect'
 import { reactive } from '../reactive'
-import { isRef, ref, unRef } from "../ref"
+import { isRef, proxyRefs, ref, unRef } from "../ref"
 describe('happy path', () => {
 
   // 1. 实现 ref
@@ -71,5 +71,45 @@ describe('happy path', () => {
     const a = ref(1)
     expect(unRef(a)).toBe(1)
     expect(unRef(1)).toBe(1)
+  })
+
+
+  // 6. 实现 proxyRefs
+  // proxyRefs 的功能，把 ref 的 .value 去掉，并且能够访问 ref .value的值
+  it('proxyRefs', () => {
+    const user = {
+      age: ref(10),
+      name: 'ZhangSan'
+    }
+
+    // 实现： get 方法 , 如果说 age(ref)  返回 .value 
+    // not  ref  返回本身的值 value
+
+    const proxyUser = proxyRefs(user)
+    // 1. 通过proxyRefs 代理过的对象， 中有ref()，通过属性可以访问 值
+    expect(proxyUser.age).toBe(10)
+    expect(user.age.value).toBe(10)
+    expect(proxyUser.name).toBe('ZhangSan')
+
+
+
+    // 实现 set ,  判读是否是 ref 类型 ， 
+    // true -> 修改 .value
+    // false -> 那就是 ref(xxx) , 那就进行替换 
+
+
+    //  修改 user.age  的值，和 proxyUser.age 的值
+    proxyUser.age = 20
+    expect(user.age.value).toBe(20)
+    expect(proxyUser.age).toBe(20)
+
+    // 如果要修改的值是 ref 对象, 直接替换
+    proxyUser.age = ref(10)
+    expect(user.age.value).toBe(10)
+    expect(proxyUser.age).toBe(10)
+
+    // 实现场景： 
+    // 1. template -> 模板中的 ref 属性 
+    //  vue3 -> setup(){return { ref(xxx) } },  在模板中就不需要使用 .value
   })
 })

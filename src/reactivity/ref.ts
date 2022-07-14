@@ -103,6 +103,39 @@ export function unRef(ref) {
   // 实现逻辑：1. 判断 ref 是不是 Ref,  如果是，则返回 ref.value 的值，如果不是，则返回 ref
   return isRef(ref) ? ref.value : ref
 }
+
+
+export function proxyRefs(objectWithRefs) {
+
+  // 如何能知道 读取的值呢 ? 可以通过 new Proxy 
+  //  get | set 
+  return new Proxy(objectWithRefs, {
+    get(target, key) {
+
+      // 实现： get 方法 , 如果说 age(ref)  返回 .value 
+      // not  ref  返回本身的值 value
+
+      // 使用 unRef() 判断就行 
+      return unRef(Reflect.get(target, key))
+    },
+
+    set(target, key, value) {
+      // 实现 set ,  判读 对象之前的 key, 是否是 ref 类型 ， 
+      // true -> 修改 .value
+      // false -> 那就是 ref(xxx) , 那就进行替换 
+
+
+      // 如果之前对象的值，是一个 Ref 类型，并且修改的值 不是一个Ref 类型时
+      if (isRef(target[key]) && !isRef(value)) {
+        // 进行替换 
+        return target[key].value = value
+      } else {
+        return Reflect.set(target, key, value)
+      }
+    }
+  })
+
+}
 /**
  * ref 的总体逻辑
  * 1. 因为 ref 传过来的值是一个单值,  1 -> "1" 
