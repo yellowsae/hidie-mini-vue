@@ -5,9 +5,10 @@ import { reactive } from "./reactive";
 
 // 创建 RefImpl 保存 ref 的类
 class RefImpl {
-  private _value: any;
+  private _value: any
   public dep
-  public _rawValue: any;
+  public _rawValue: any
+  public isRef = '_v_isRef'
   constructor(value) {
     this._rawValue = value
     // 如果说 传过来的value 是一个对象的话，使用 reactive() 进行一个代理
@@ -82,15 +83,26 @@ function trackRefValue(ref) {
 }
 
 
-
 // ref
-export function ref(value) {
+export function ref(ref) {
 
   // 返回一个 new RefImpl 的实例
-  return new RefImpl(value)
+  return new RefImpl(ref)
 }
 
 
+// isRef
+export function isRef(ref) {
+  // 实现逻辑： 在 RefImpl 定义一个 _v_isRef 的属性, 判断是否具有这个属性，如果有，说明是一个 ref
+  // 使用 !! 转换 undefined
+  return !!ref.isRef
+}
+
+// unRef
+export function unRef(ref) {
+  // 实现逻辑：1. 判断 ref 是不是 Ref,  如果是，则返回 ref.value 的值，如果不是，则返回 ref
+  return isRef(ref) ? ref.value : ref
+}
 /**
  * ref 的总体逻辑
  * 1. 因为 ref 传过来的值是一个单值,  1 -> "1" 

@@ -1,7 +1,8 @@
 // ref 的单测
 
 import { effect } from '../effect'
-import { ref } from "../ref"
+import { reactive } from '../reactive'
+import { isRef, ref, unRef } from "../ref"
 describe('happy path', () => {
 
   // 1. 实现 ref
@@ -54,5 +55,21 @@ describe('happy path', () => {
     // 更新 count
     a.value.count = 2
     expect(dummy).toBe(2)
+  })
+
+  // 4. isRef() 判断是否是 ref
+  it('isRef', () => {
+    const a = ref(1)
+    const user = reactive({ age: 1 })
+    expect(isRef(a)).toBe(true)
+    expect(isRef(1)).toBe(false)
+    expect(isRef(user)).toBe(false)
+  })
+
+  // 5. unRef () 获取 xxx.value 的值
+  it('unRef', () => {
+    const a = ref(1)
+    expect(unRef(a)).toBe(1)
+    expect(unRef(1)).toBe(1)
   })
 })
