@@ -8,7 +8,7 @@ class RefImpl {
   private _value: any
   public dep
   public _rawValue: any
-  public isRef = '_v_isRef'
+  public _v_isRef = true
   constructor(value) {
     this._rawValue = value
     // 如果说 传过来的value 是一个对象的话，使用 reactive() 进行一个代理
@@ -95,7 +95,7 @@ export function ref(ref) {
 export function isRef(ref) {
   // 实现逻辑： 在 RefImpl 定义一个 _v_isRef 的属性, 判断是否具有这个属性，如果有，说明是一个 ref
   // 使用 !! 转换 undefined
-  return !!ref.isRef
+  return !!ref._v_isRef
 }
 
 // unRef
