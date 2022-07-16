@@ -8,8 +8,8 @@ let activeEffect
 // TODO: shouldTrack 判断应该执行 依赖收集, 在 getter() 时候进行调用
 let shouldTrack
 
-
-class ReactiveEffect {
+// 导出 ReactiveEffect
+export class ReactiveEffect {
   private _fn: any
   // 声明 deps 属性， 并且设置为一个数组, 存储所有的 dep 对象
   deps = []
@@ -17,6 +17,7 @@ class ReactiveEffect {
   active = true
   // 声明 onStop, 它是 stop 的回调函数
   onStop?: () => void
+  // 声明 scheduler 
   constructor(fn, public scheduler?) {
     this._fn = fn
     // public scheduler?  : 是一个可选参数 scheduler 是一个函数
