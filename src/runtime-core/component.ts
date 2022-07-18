@@ -85,9 +85,7 @@ function finishComponentSetup(instance: any) {
   const Component = instance.type
 
   // 判断组件中是否具有 runner() 
-  if (Component.render) {
-    // 组件中具有 runner(), 将 runner 挂载到 instance 上
-    instance.render = Component.render
-  }
+  // 组件中具有 runner(), 将 runner 挂载到 instance 上
+  instance.render = Component.render
 }
 

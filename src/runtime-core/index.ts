@@ -2,7 +2,8 @@
 
 // 导出出口文件
 
-
+export { createApp } from "./createApp"
+export { h } from "./h"
 
 /**
  * 初始化 runtime-core 的流程 和 初始化 组件 的流程总结

@@ -23,10 +23,23 @@ function patch(vnode, container) {
   // 实现初始化组件的逻辑 
 
   // 实现组件初始化的总体函数 processComponent 的函数
-  processComponent(vnode, container)
+  // processComponent(vnode, container)
 
   // 如果是 Element 类型
   // 处理Element ，将其旋渲染出来
+  // TODO: 判断vnode 是不是一个 element -> 那么就应该处理 element
+  // 思考题： 如何判断vnode 是一个 element
+  // processElement(vnode, container)
+
+
+  // 模拟判断 
+  // 因为 vnode 要么是 组件类型 -> Object , 要么是 Element 类型 ->  string
+
+  if (typeof vnode.type === 'object') {
+    processComponent(vnode, container)
+  } else if (typeof vnode.type === 'string') {
+    processElement(vnode, container)
+  }
 }
 
 // 实现组件初始化的总体函数
@@ -34,7 +47,14 @@ function processComponent(vnode: any, container: any) {
   // 1. 挂载组件
   // 使用 mountComponent 函数 挂载组件
   mountComponent(vnode, container)
+  console.log(vnode)
 }
+
+// 当 vnode 是一个 Element 类型执行这个函数
+function processElement(vnode: any, container: any) {
+  console.log(vnode)
+}
+
 
 // 挂载组件mountComponent, 初始化组件实例
 function mountComponent(vnode: any, container) {

@@ -1,4 +1,5 @@
-
+// 引入 h 函数
+import { h } from "../../lib/guide-mini-vue.esm.js"
 
 // 创建APP组件
 
