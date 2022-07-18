@@ -15,6 +15,6 @@ export function createVNode(type, props?, children?) {
     children,
   }
 
-  // 返回虚拟节点
+  // 返回创建组件的虚拟节点
   return vnode
 }
