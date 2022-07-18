@@ -1,8 +1,9 @@
 import { createComponentInstance, setupComponent } from "./component"
 
+
+// 在mount()方法定义的runner()函数，接收创建的虚拟节点vnode和根容器，交给patch()函数进行渲染
 export function runner(vnode, container) {
   // runner(虚拟节点, 根容器)
-
 
   //runner 的作用 -> 主要调用 patch() 方法
 
@@ -11,11 +12,9 @@ export function runner(vnode, container) {
 }
 
 
-// patch(虚拟节点, 根容器)
+// 目的为了根据判断 虚拟节点，都组件或者是 Element 进行一个渲染
+// patch(虚拟节点, 容器)
 function patch(vnode, container) {
-
-  // 这里主要处理组件 
-
   // 1. 判断 vnode 的类型 -> 可能是 组件类型 或者 Element 类型
 
 
@@ -23,20 +22,21 @@ function patch(vnode, container) {
   // 去处理组件 
   // 实现初始化组件的逻辑 
 
-  // 挂载组件 processComponent 的函数
+  // 实现组件初始化的总体函数 processComponent 的函数
   processComponent(vnode, container)
 
   // 如果是 Element 类型
   // 处理Element ，将其旋渲染出来
 }
 
+// 实现组件初始化的总体函数
 function processComponent(vnode: any, container: any) {
   // 1. 挂载组件
   // 使用 mountComponent 函数 挂载组件
   mountComponent(vnode, container)
 }
 
-
+// 挂载组件mountComponent, 初始化组件实例
 function mountComponent(vnode: any, container) {
   // 1. 通过 vnode 创建一个组件的实例对象 ->  instance 
   const instance = createComponentInstance(vnode)
