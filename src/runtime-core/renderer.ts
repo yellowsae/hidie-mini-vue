@@ -1,3 +1,4 @@
+import { isObject } from "../shared/index"
 import { createComponentInstance, setupComponent } from "./component"
 
 
@@ -18,6 +19,16 @@ function patch(vnode, container) {
   // 1. 判断 vnode 的类型 -> 可能是 组件类型 或者 Element 类型
 
 
+  // console.log(vnode.type)  可以看到  vnode.type 要么是 组件类型 -> Object , 要么是 Element 类型 ->  string
+
+  if (typeof vnode.type === "string") {
+    // 如果 vnode.type 是 string 类型, 表示它是 Element 
+    processElement(vnode, container)
+  } else if (isObject(vnode.type)) {
+    // 如果 vnode.type 是 object 类型 , 表示它是 组件类型
+    processComponent(vnode, container)
+  }
+
   // 如果是 组件类型
   // 去处理组件 
   // 实现初始化组件的逻辑 
@@ -31,15 +42,59 @@ function patch(vnode, container) {
   // 思考题： 如何判断vnode 是一个 element
   // processElement(vnode, container)
 
+}
+// 当 vnode 是一个 Element 类型执行这个函数
+function processElement(vnode: any, container: any) {
+  // 进行一个 Element 的渲染 
 
-  // 模拟判断 
-  // 因为 vnode 要么是 组件类型 -> Object , 要么是 Element 类型 ->  string
+  // 1. Element 分为两种情况 -> init 初始化 ->  update 更新
 
-  if (typeof vnode.type === 'object') {
-    processComponent(vnode, container)
-  } else if (typeof vnode.type === 'string') {
-    processElement(vnode, container)
+
+  // 实现初始化Element的逻辑
+  mountElement(vnode, container)
+
+}
+
+// 初始化 Element
+function mountElement(vnode: any, container: any) {
+
+  // 1. 创建一个真实的 Element -> vnode.type
+  const el = document.createElement(vnode.type)
+
+  // 2. props , 解析属性 -> vnode
+  const { props } = vnode
+  if (props) { // 当props 不为空时
+    for (const key in props) {
+      const val = props[key]
+      // 设置 el 的属性值
+      el.setAttribute(key, val)
+    }
   }
+
+  // 3. children,  解析然后赋值 
+  // children 有两种情况， 是一个数组， 或者是一个字符串
+  const { children } = vnode
+  if (typeof children === 'string') {
+    // 直接设置 el 的文本内容
+    el.textContent = children
+  } else if (Array.isArray(children)) {
+    // 表示 [h(), h()]
+    // 使用 mountChildren 重构 children - Array 的渲染
+    mountChildren(vnode, el)
+  }
+
+  // 4. 挂载 el 到 容器 container 上
+  container.appendChild(el)
+}
+
+
+// 封装 渲染 children 的函数
+function mountChildren(vnode, container) {
+  // 循环 children 内的虚拟节点, 然后调用 patch()进行递归->再去渲染
+  vnode.children.forEach((v) => {
+    // 这里 container 容器设置为 el 
+    patch(v, container)
+  })
 }
 
 // 实现组件初始化的总体函数
@@ -47,12 +102,6 @@ function processComponent(vnode: any, container: any) {
   // 1. 挂载组件
   // 使用 mountComponent 函数 挂载组件
   mountComponent(vnode, container)
-  console.log(vnode)
-}
-
-// 当 vnode 是一个 Element 类型执行这个函数
-function processElement(vnode: any, container: any) {
-  console.log(vnode)
 }
 
 
