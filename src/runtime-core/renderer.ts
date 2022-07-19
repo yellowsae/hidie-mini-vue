@@ -112,7 +112,7 @@ function mountComponent(vnode: any, container) {
 
   // 2. setupComponent() 初始化
   // 2.1 解析处理组件的其他内置属性 比如： props , slots 这些 
-  // 2.2 组件中setup() 的返回值 和 挂载 runder() 返回
+  // 2.2 组件中setup() 的返回值 和 挂载 render() 返回
   setupComponent(instance)
 
   // 3. 开始调用 组件的 runner 函数
@@ -120,7 +120,7 @@ function mountComponent(vnode: any, container) {
 }
 
 function setupRenderEffect(instance: any, container: any) {
-  // 调用 runder() 函数
+  // 调用 render() 函数
   // subTree 是 h() 函数返回的 vnode, 也是虚拟节点树 subTree 
   const subTree = instance.render()
 

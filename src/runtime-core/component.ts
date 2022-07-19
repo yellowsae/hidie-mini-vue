@@ -75,7 +75,7 @@ function handleStupResult(instance, stupResult: any) {
     instance.setupState = stupResult
   }
 
-  // 需要保证 组件必须要用 runner 函数
+  // 需要保证 组件必须要用 render 函数
   finishComponentSetup(instance)
 }
 
@@ -84,8 +84,8 @@ function handleStupResult(instance, stupResult: any) {
 function finishComponentSetup(instance: any) {
   const Component = instance.type
 
-  // 判断组件中是否具有 runner() 
-  // 组件中具有 runner(), 将 runner 挂载到 instance 上
+  // 判断组件中是否具有 render() 
+  // 组件中具有 render(), 将 render 挂载到 instance 上
   instance.render = Component.render
 }
 
