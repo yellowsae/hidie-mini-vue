@@ -13,6 +13,8 @@ export function createVNode(type, props?, children?) {
     type, // 组件类型
     props,
     children,
+    // 初始化 el
+    el: null
   }
 
   // 返回创建组件的虚拟节点

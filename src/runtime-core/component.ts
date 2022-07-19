@@ -1,3 +1,4 @@
+import { PublicInstanceProxyHandlers } from "../componentPublicInstance"
 
 // 创建一个组件的实例对象 -> instance
 export function createComponentInstance(vnode) {
@@ -8,7 +9,10 @@ export function createComponentInstance(vnode) {
   const component = {
     vnode,
     // 为了简化操作——> 获取 type 
-    type: vnode.type
+    type: vnode.type,
+
+    // 初始时，声明setupState， 在后续 Proxy 中使用
+    setupState: {},
   }
 
   // 返回 component  组件实例对象
@@ -46,7 +50,42 @@ function setupStatefulComponent(instance: any) {
   // 1. 获取到虚拟节点的type ， 也就是用户定义的 App 组件 
   const Component = instance.type
 
-  // 2. 结构出 setup 
+  // 创建组件代理对象 Proxy, 并添加到 instance组件实例上
+  // Proxy的第一个参数 {}  -> ctx 上下文
+  // instance.proxy = new Proxy({}, {
+  //   get(target, key) {
+  //     // target 就是ctx ， key 就是 ctx 需要获取的 key 
+  //     // 例如： 在App组件中访问this.msg,   key 就是 msg
+
+  //     // 1. 实现从setupState 拿到值
+  //     // 解构 setupState 
+  //     const { setupState } = instance
+  //     // 判断 setupState 中是否有 key 属性
+  //     if (key in setupState) {
+  //       // 有属性，就 setupState 返回属性值
+  //       return setupState[key]
+  //     }
+
+  //     // 2. 添加判断 实现访问 $el 的逻辑
+  //     if (key === '$el') {
+  //       // 如果是 $el ， 就返回真实的 DOM 元素
+  //       // 这里instance 组件实例 上已经挂载了 vnode , 通过vnode访问 el 
+
+  //       // 因为这里的 vnode 类型是 Object , 而不是 string ，说明这个 vnode 是组件的虚拟节点，不是element的。
+  //       // 所以，通过 vnode 获取 el 元素，返回 null 
+  //       // 解决： 就是当 再次调用patch()后，将 调用 render() 返回的 subTree.el 赋值给 vnode.el
+  //       return instance.vnode.el
+  //     }
+  //   }
+  // })
+
+  // 实现重构
+  // { _: instance } -> ctx传值 ，传 instance
+  instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers)
+
+
+
+  // 2. 解构出 setup 
   const { setup } = Component
 
   // 判断 setup 是否存在

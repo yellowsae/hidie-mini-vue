@@ -59,7 +59,7 @@ function processElement(vnode: any, container: any) {
 function mountElement(vnode: any, container: any) {
 
   // 1. 创建一个真实的 Element -> vnode.type
-  const el = document.createElement(vnode.type)
+  const el = (vnode.el = document.createElement(vnode.type))  // 使用 el 保存根节点 -> 给el赋值
 
   // 2. props , 解析属性 -> vnode
   const { props } = vnode
@@ -106,9 +106,9 @@ function processComponent(vnode: any, container: any) {
 
 
 // 挂载组件mountComponent, 初始化组件实例
-function mountComponent(vnode: any, container) {
+function mountComponent(initialVNode: any, container) {
   // 1. 通过 vnode 创建一个组件的实例对象 ->  instance 
-  const instance = createComponentInstance(vnode)
+  const instance = createComponentInstance(initialVNode)
 
   // 2. setupComponent() 初始化
   // 2.1 解析处理组件的其他内置属性 比如： props , slots 这些 
@@ -116,13 +116,18 @@ function mountComponent(vnode: any, container) {
   setupComponent(instance)
 
   // 3. 开始调用 组件的 runner 函数
-  setupRenderEffect(instance, container)
+  setupRenderEffect(instance, initialVNode, container)
 }
 
-function setupRenderEffect(instance: any, container: any) {
+function setupRenderEffect(instance: any, initialVNode, container: any) {
+
+  // 当调用 render时候，应该拿到 组件的代理对象
+  const { proxy } = instance
+  // 拿到 proxy 后, 在调用 render时候，进行绑定
+
   // 调用 render() 函数
   // subTree 是 h() 函数返回的 vnode, 也是虚拟节点树 subTree 
-  const subTree = instance.render()
+  const subTree = instance.render.call(proxy)  // 绑定 proxy
 
   // 再基于返回过来的虚拟节点 vnode, 再进一步的调用 patch() 函数
   // vnode -> subTree 是一个 Element类型 ->  挂载 mountElement
@@ -130,5 +135,11 @@ function setupRenderEffect(instance: any, container: any) {
   // 递归调用 -> patch(虚拟节点，容器)
   patch(subTree, container)
   // patch()再去判断，-> subTree 的类型 -> 可能是 组件类型 或者 Element类型 -> 一直递归进行下去
+
+
+  // 实现 $el 的关键时机， 在这个时候赋值 el
+  // 当patch() 再次调用，可能是 进行Element流程
+  // 将 subTree.el 赋值给 vnode.el
+  initialVNode.el = subTree.el
 }
 
