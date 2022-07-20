@@ -19,9 +19,24 @@ export const App = {
     // 当返回是 children 是 string时
     return h("div", {
       id: 'test1-id',
-      class: 'test2-class'
+      class: 'test2-class',
+      // 添加事件
+      onClick() {
+        console.log('click')
+      },
+      onMouseDown() {
+        console.log('mouse down')
+      }
     }, "hello " + this.msg
     )
+
+    // 实现 props 属性中 注册事件的功能 
+    // 实现逻辑
+    /**
+     * 1. 在处理 props 的逻辑中， 判断 key 是否是特殊的方法 
+     * 2. 在对 key 对应的值，绑定对应的事件
+     */
+
 
     // 在 render 中还需要实现 :
     // 1. 实现 render() 中能够 setupState -> setup 的返回值
