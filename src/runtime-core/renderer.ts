@@ -1,4 +1,5 @@
 import { isObject } from "../shared/index"
+import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
 
 
@@ -16,15 +17,25 @@ export function runner(vnode, container) {
 // 目的为了根据判断 虚拟节点，都组件或者是 Element 进行一个渲染
 // patch(虚拟节点, 容器)
 function patch(vnode, container) {
-  // 1. 判断 vnode 的类型 -> 可能是 组件类型 或者 Element 类型
+  // 实现 shapeFlag - vue 
+  // shapeFlag 的作用是， 描述当前节点的类型，是一个 Element 还是一个组件 | children 是一个字符串 还是一个数组
 
+
+  // 1. 判断 vnode 的类型 -> 可能是 组件类型 或者 Element 类型
 
   // console.log(vnode.type)  可以看到  vnode.type 要么是 组件类型 -> Object , 要么是 Element 类型 ->  string
 
-  if (typeof vnode.type === "string") {
+  // 使用 ShapeFlags -> 进行判断 类型
+  const { shapeFlag } = vnode
+  // 这里判断 vnode.type 类型 -> ELEMENT
+  if (shapeFlag & ShapeFlags.ELEMENT) {
+    // if (typeof vnode.type === "string") {
     // 如果 vnode.type 是 string 类型, 表示它是 Element 
     processElement(vnode, container)
-  } else if (isObject(vnode.type)) {
+
+    // 这里判断是否组件类型  -> STATEFUL_COMPONENT
+  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+    // } else if (isObject(vnode.type)) {  、// 之前的判断
     // 如果 vnode.type 是 object 类型 , 表示它是 组件类型
     processComponent(vnode, container)
   }
@@ -73,11 +84,18 @@ function mountElement(vnode: any, container: any) {
 
   // 3. children,  解析然后赋值 
   // children 有两种情况， 是一个数组， 或者是一个字符串
-  const { children } = vnode
-  if (typeof children === 'string') {
+  const { children, shapeFlag } = vnode
+
+  // 这里也是用 shapeFlag 判断 children 的类型 -> 可能是数组，可能是字符串
+  // 如果是一个字符串 -> TEXT_CHILDREN
+  if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+    // if (typeof children === 'string') {
     // 直接设置 el 的文本内容
     el.textContent = children
-  } else if (Array.isArray(children)) {
+
+    // 如果是一个数组 -> ARRAY_CHILDREN
+  } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+    // } else if (Array.isArray(children)) {
     // 表示 [h(), h()]
     // 使用 mountChildren 重构 children - Array 的渲染
     mountChildren(vnode, el)
