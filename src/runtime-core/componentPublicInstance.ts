@@ -1,3 +1,4 @@
+import { hasOwn } from "../shared"
 
 // 声明一个对象，根据key，判断是否有属性，返回 instance 上的值
 const publicPropertiesMap = {
@@ -13,12 +14,28 @@ export const PublicInstanceProxyHandlers = {
 
     // 1. 实现从setupState 拿到值
     // 解构 setupState 
-    const { setupState } = instance
-    // 判断 setupState 中是否有 key 属性
-    if (key in setupState) {
-      // 有属性，就 setupState 返回属性值
+    // const { setupState } = instance
+    // // 判断 setupState 中是否有 key 属性
+    // if (key in setupState) {
+    //   // 有属性，就 setupState 返回属性值
+    //   return setupState[key]
+    // }
+
+
+    // 拿到 props 
+    const { setupState, props } = instance
+
+
+    // 重构一下 
+    // 使用 hasOwn() 方法，判断  object 是否具有 key 属性
+    if (hasOwn(setupState, key)) {
+      // 如果有，直接返回 key 对应的值
       return setupState[key]
+    } else if (hasOwn(props, key)) {
+      return props[key]
     }
+
+
 
     // 2. 添加判断 实现访问 $el 的逻辑
     // if (key === '$el') {

@@ -9,3 +9,5 @@ export const hasChanged = (newValue, value) => {
   // 如果它们相等 ，返回 false
   return !Object.is(newValue, value)
 }
+// 判断一个对象中是否具有 key 属性
+export const hasOwn = (val, key) => Object.prototype.hasOwnProperty.call(val, key)

@@ -1,4 +1,6 @@
-import { PublicInstanceProxyHandlers } from "../componentPublicInstance"
+import { PublicInstanceProxyHandlers } from "./componentPublicInstance"
+import { initProps } from "./componentProps"
+import { shallowReadonly } from "../reactivity/reactive"
 
 // 创建一个组件的实例对象 -> instance
 export function createComponentInstance(vnode) {
@@ -13,6 +15,9 @@ export function createComponentInstance(vnode) {
 
     // 初始时，声明setupState， 在后续 Proxy 中使用
     setupState: {},
+
+    // 初始化props
+    props: {},
   }
 
   // 返回 component  组件实例对象
@@ -31,7 +36,8 @@ export function setupComponent(instance) {
 
   // TODO:
   // 1. 先初始化 props 
-  // initProps()
+  // 初始化 initProps 给定两个参数， instance, 和 props 
+  initProps(instance, instance.vnode.props)
 
   // 2. 初始化 slots
   // initSlots()
@@ -92,7 +98,9 @@ function setupStatefulComponent(instance: any) {
   if (setup) {
     // 调用 setup() 拿到返回值
 
-    const stupResult = setup()
+    // 把 props 传入 setup() 
+    // 因为 props是一个只读的 -> 在setup调用的时候，设置为shallowReadonly(props)
+    const stupResult = setup(shallowReadonly(instance.proxy))
 
     // 判断 stupResult 的类型
     handleStupResult(instance, stupResult)

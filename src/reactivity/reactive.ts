@@ -1,3 +1,4 @@
+import { isObject } from "../shared"
 import { mutableHandlers, readonlyHandlers, shallowReadonlyHandlers, shallowReactiveHandlers } from "./baseHandlers"
 
 
@@ -110,8 +111,13 @@ export function shallowReactive(raw) {
 }
 
 // 把 new Proxy 抽离封装 为一个函数
-function createActiveObject(raw: any, baseHandlers: any) {
-  return new Proxy(raw, baseHandlers)
+function createActiveObject(target: any, baseHandlers: any) {
+  // 如果 raw 不是一个对象
+  if (!isObject(target)) {
+    console.warn(`target ${target} 必须是一个对象`)
+    return target
+  }
+  return new Proxy(target, baseHandlers)
 }
 /**
  * 因为 readonly 和  reactive 的很类似， 可以进行相应的代码重构 

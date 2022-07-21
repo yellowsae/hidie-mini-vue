@@ -1,11 +1,12 @@
 // 引入 h 函数
 import { h } from "../../lib/guide-mini-vue.esm.js"
-
+import { Foo } from "./Foo.js"
 // 创建APP组件
 
 // 使用 window 添加事件 
 window.self = null
 export const App = {
+  name: 'App',  // 组件name
   // 这里先不写 template，因为 template 最终会转为 runner 函数
   // 写 runder 
   render() {
@@ -27,7 +28,13 @@ export const App = {
       onMouseDown() {
         console.log('mouse down')
       }
-    }, "hello " + this.msg
+    }, [
+      h("div", {}, "hello " + this.msg),
+      // 使用 Foo 组件， 传递props 参数
+      h(Foo, {
+        count: 1
+      })
+    ]
     )
 
     // 实现 props 属性中 注册事件的功能 
