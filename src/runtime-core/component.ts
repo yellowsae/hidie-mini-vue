@@ -1,6 +1,7 @@
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance"
 import { initProps } from "./componentProps"
 import { shallowReadonly } from "../reactivity/reactive"
+import { emit } from "./componentEmit"
 
 // 创建一个组件的实例对象 -> instance
 export function createComponentInstance(vnode) {
@@ -18,7 +19,15 @@ export function createComponentInstance(vnode) {
 
     // 初始化props
     props: {},
+
+    // 初始化 emit -> 是一个函数
+    emit: () => { }
   }
+
+  // 声明 emit 方法， 挂载到 component.emit 上
+  // 抽离 emit() 方法 -> componentEmit.ts
+  component.emit = emit.bind(null, component) as any
+
 
   // 返回 component  组件实例对象
   return component
@@ -100,7 +109,10 @@ function setupStatefulComponent(instance: any) {
 
     // 把 props 传入 setup() 
     // 因为 props是一个只读的 -> 在setup调用的时候，设置为shallowReadonly(props)
-    const stupResult = setup(shallowReadonly(instance.proxy))
+
+    // 实现emit -> 第二个参数{} -> 对象中有 emit 
+    // 将 emit 默认赋值给 instance.emit
+    const stupResult = setup(shallowReadonly(instance.proxy), { emit: instance.emit })
 
     // 判断 stupResult 的类型
     handleStupResult(instance, stupResult)
