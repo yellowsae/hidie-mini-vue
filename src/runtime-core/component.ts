@@ -2,6 +2,7 @@ import { PublicInstanceProxyHandlers } from "./componentPublicInstance"
 import { initProps } from "./componentProps"
 import { shallowReadonly } from "../reactivity/reactive"
 import { emit } from "./componentEmit"
+import { initSlots } from "./componentSlots"
 
 // 创建一个组件的实例对象 -> instance
 export function createComponentInstance(vnode) {
@@ -21,7 +22,10 @@ export function createComponentInstance(vnode) {
     props: {},
 
     // 初始化 emit -> 是一个函数
-    emit: () => { }
+    emit: () => { },
+
+    // 初始化 slots
+    slots: {},
   }
 
   // 声明 emit 方法， 挂载到 component.emit 上
@@ -49,7 +53,8 @@ export function setupComponent(instance) {
   initProps(instance, instance.vnode.props)
 
   // 2. 初始化 slots
-  // initSlots()
+  //初始化 initSlots 给定两个参数， instance, 和 children 
+  initSlots(instance, instance.vnode.children)
 
   // 3. 初始化component, 也就是 调用 setup() 之后的返回值
   setupStatefulComponent(instance)  // 翻译： setupStatefulComponent -> 初始化有状态的 component

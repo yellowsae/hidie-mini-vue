@@ -36,6 +36,20 @@ export function createVNode(type, props?, children?) {
     vnode.shapeFlag |= ShapeFlags.ARRAY_CHILDREN
   }
 
+
+  // 添加处理当children是一个 object 时 -> 也就是具有 slots 
+  // 判定条件  : 是一个组件 + 具有children 是一个 object
+  if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {  // 如果当前节点是一个组件 
+    if (typeof children === "object") {  // 并且 children 是一个 object -> slots
+
+      // 也就说明当前节点是一个 具有 slot 的逻辑 
+      // 给当前节点 赋值为具有 slot 的状态 
+      vnode.shapeFlag |= ShapeFlags.SLOT_CHILDREN
+    }
+  }
+
+
+
   // 返回创建组件的虚拟节点
   return vnode
 }

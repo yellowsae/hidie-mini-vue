@@ -7,6 +7,8 @@ export const enum ShapeFlags {
   STATEFUL_COMPONENT = 1 << 1, // 使用左移运算符 1 左移1位 -> 10 -> 转为二进制 -> 0010 
   TEXT_CHILDREN = 1 << 2,  // 1 左移 2 位 -> 100 -> 转为二进制 -> 0100 
   ARRAY_CHILDREN = 1 << 3, // 1 左移 3 位 -> 1000 -> 转为二进制 -> 1000 
+  // 添加 当前节点的 slots 的状态
+  SLOT_CHILDREN = 1 << 4  // 1 左移 4 位 -> 10000 -> 转为二进制 -> 10000
 }
 
 
