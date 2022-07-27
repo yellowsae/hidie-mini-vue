@@ -4,6 +4,8 @@
 
 import { ShapeFlags } from "../shared/ShapeFlags"
 
+// 这里定义 Fragment , 是一个 Symbol 值
+export const Fragment = Symbol('Fragment')
 export function createVNode(type, props?, children?) {
   // 参数：
   // type -> 组件类型

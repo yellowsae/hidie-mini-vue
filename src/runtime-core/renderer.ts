@@ -1,6 +1,7 @@
 import { isObject } from "../shared/index"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
+import { Fragment } from "./vnode"
 
 
 // 在mount()方法定义的runner()函数，接收创建的虚拟节点vnode和根容器，交给patch()函数进行渲染
@@ -25,20 +26,49 @@ function patch(vnode, container) {
 
   // console.log(vnode.type)  可以看到  vnode.type 要么是 组件类型 -> Object , 要么是 Element 类型 ->  string
 
-  // 使用 ShapeFlags -> 进行判断 类型
-  const { shapeFlag } = vnode
-  // 这里判断 vnode.type 类型 -> ELEMENT
-  if (shapeFlag & ShapeFlags.ELEMENT) {
-    // if (typeof vnode.type === "string") {
-    // 如果 vnode.type 是 string 类型, 表示它是 Element 
-    processElement(vnode, container)
+  const { type } = vnode  // type 组件的类型 
+  switch (type) {
 
-    // 这里判断是否组件类型  -> STATEFUL_COMPONENT
-  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    // } else if (isObject(vnode.type)) {  、// 之前的判断
-    // 如果 vnode.type 是 object 类型 , 表示它是 组件类型
-    processComponent(vnode, container)
+    // 如果是 Fragment 包裹的标签
+    case Fragment:
+      // 就调用 processFragment 函数
+      processFragment(vnode, container)
+      break
+
+
+    // 如果不是，则走 默认的逻辑
+    default:
+      // 使用 ShapeFlags -> 进行判断 类型
+      const { shapeFlag } = vnode
+      // 这里判断 vnode.type 类型 -> ELEMENT
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        // if (typeof vnode.type === "string") {
+        // 如果 vnode.type 是 string 类型, 表示它是 Element 
+        processElement(vnode, container)
+
+        // 这里判断是否组件类型  -> STATEFUL_COMPONENT
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        // } else if (isObject(vnode.type)) {  、// 之前的判断
+        // 如果 vnode.type 是 object 类型 , 表示它是 组件类型
+        processComponent(vnode, container)
+      }
+      break
   }
+
+  // // 使用 ShapeFlags -> 进行判断 类型
+  // const { shapeFlag } = vnode
+  // // 这里判断 vnode.type 类型 -> ELEMENT
+  // if (shapeFlag & ShapeFlags.ELEMENT) {
+  //   // if (typeof vnode.type === "string") {
+  //   // 如果 vnode.type 是 string 类型, 表示它是 Element 
+  //   processElement(vnode, container)
+
+  //   // 这里判断是否组件类型  -> STATEFUL_COMPONENT
+  // } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+  //   // } else if (isObject(vnode.type)) {  、// 之前的判断
+  //   // 如果 vnode.type 是 object 类型 , 表示它是 组件类型
+  //   processComponent(vnode, container)
+  // }
 
   // 如果是 组件类型
   // 去处理组件 
@@ -54,6 +84,15 @@ function patch(vnode, container) {
   // processElement(vnode, container)
 
 }
+
+// 初始化 Fragment 的逻辑
+function processFragment(vnode: any, container: any) {
+  // 调用 mountChildren
+  mountChildren(vnode, container)
+}
+
+
+
 // 当 vnode 是一个 Element 类型执行这个函数
 function processElement(vnode: any, container: any) {
   // 进行一个 Element 的渲染 
