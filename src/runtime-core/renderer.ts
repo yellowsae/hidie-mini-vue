@@ -5,12 +5,12 @@ import { Fragment, Text } from "./vnode"
 
 
 // 在mount()方法定义的runner()函数，接收创建的虚拟节点vnode和根容器，交给patch()函数进行渲染
-export function runner(vnode, container, parentComponent) {
+export function runner(vnode, container) {
   // runner(虚拟节点, 根容器)
 
   //runner 的作用 -> 主要调用 patch() 方法
 
-  patch(vnode, container, parentComponent)
+  patch(vnode, container, null)
   // 使用 patch() 函数 为了方便递归
 }
 
