@@ -110,6 +110,12 @@ function setupStatefulComponent(instance: any) {
 
   // 判断 setup 是否存在
   if (setup) {
+    // 给 currentInstance 赋值 为当前组件的实例对象
+    // currentInstance = instance
+    // 因为这里直接赋值不太合适，为了起到一个组件之间的一个中间层
+    // 可以封装一个函数给 currentInstance 赋值
+    setCurrentInstance(instance)
+
     // 调用 setup() 拿到返回值
 
     // 把 props 传入 setup() 
@@ -118,6 +124,10 @@ function setupStatefulComponent(instance: any) {
     // 实现emit -> 第二个参数{} -> 对象中有 emit 
     // 将 emit 默认赋值给 instance.emit
     const stupResult = setup(shallowReadonly(instance.proxy), { emit: instance.emit })
+
+
+    // 清空 currentInstance
+    currentInstance = null
 
     // 判断 stupResult 的类型
     handleStupResult(instance, stupResult)
@@ -153,3 +163,28 @@ function finishComponentSetup(instance: any) {
   instance.render = Component.render
 }
 
+// 全局变量 - 用于赋值当前组件的实例对象
+let currentInstance = null
+
+
+// 这里导出 getCurrentInstance() 函数
+export function getCurrentInstance() {
+  // 执行 getCurrentInstance 的逻辑
+  // 目的： 导出组件的实例  instance 
+  // 当前是拿不到 instance 的， 可以通过 一个全局变量 currentInstance 来拿到
+  // 在调用 setup() 时, instance 指向的就是当前组件的实例；
+
+
+  // 在 setup()  执行 getCurrentInstance() -> 返回currentInstance 当前组件实例
+
+  // 返回全局变量； 也就是 instance
+  return currentInstance
+}
+
+// 给currentInstance 赋值
+function setCurrentInstance(instance) {
+  // 为了起到一个组件之间的一个中间层
+  // 可以封装一个函数给 currentInstance 赋值
+  // 这样在之后调式代码时 在这个打上断点， 方便调式
+  currentInstance = instance
+}
