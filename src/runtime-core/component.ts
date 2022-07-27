@@ -5,10 +5,10 @@ import { emit } from "./componentEmit"
 import { initSlots } from "./componentSlots"
 
 // 创建一个组件的实例对象 -> instance
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent) {
   // 通过 vnode 创建一个组件的实例对象 component
 
-
+  console.log("createComponentInstance", parent)
   // 返回一个component对象
   const component = {
     vnode,
@@ -26,6 +26,11 @@ export function createComponentInstance(vnode) {
 
     // 初始化 slots
     slots: {},
+
+    // 定义 provodes 对象, 存储数据
+    provides: {},
+    // 定义 parent 对象, 子组件取到的数据
+    parent,
   }
 
   // 声明 emit 方法， 挂载到 component.emit 上
