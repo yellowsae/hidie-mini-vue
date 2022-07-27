@@ -4,7 +4,7 @@
 
 export { createApp } from "./createApp"
 export { h } from "./h"
-export { renderSlots } from "./renderSlot"
+export { renderSlots } from "./helper/renderSlot"
 
 /**
  * 初始化 runtime-core 的流程 和 初始化 组件 的流程总结

@@ -1,4 +1,4 @@
-import { createVNode } from "./vnode";
+import { createVNode } from "../vnode";
 
 export function renderSlots(slots, name, props) { //props 接收传入的参数
   // 使用 createVNode() 代替 h(xxx, {} xxx) 
