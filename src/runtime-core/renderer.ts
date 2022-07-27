@@ -1,7 +1,7 @@
 import { isObject } from "../shared/index"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
-import { Fragment } from "./vnode"
+import { Fragment, Text } from "./vnode"
 
 
 // 在mount()方法定义的runner()函数，接收创建的虚拟节点vnode和根容器，交给patch()函数进行渲染
@@ -35,6 +35,11 @@ function patch(vnode, container) {
       processFragment(vnode, container)
       break
 
+    // 如果是 Text 的逻辑
+    case Text:
+      // 如果是 Text 节点
+      processText(vnode, container)
+      break
 
     // 如果不是，则走 默认的逻辑
     default:
@@ -84,6 +89,23 @@ function patch(vnode, container) {
   // processElement(vnode, container)
 
 }
+
+// 初始化 TextNode 的逻辑
+function processText(vnode: any, container: any) {
+  // 渲染 Text 的虚拟节点的 Vnode 的逻辑 
+
+
+  // 1. 拿到用户传入的 text
+  const { children } = vnode;
+
+  // 2. 创建一个 TextNode
+  // 记得使用 vnode.el 赋值
+  const textNode = (vnode.el = document.createTextNode(children))
+
+  // 3. 添加到 container 内容
+  container.appendChild(textNode)
+}
+
 
 // 初始化 Fragment 的逻辑
 function processFragment(vnode: any, container: any) {

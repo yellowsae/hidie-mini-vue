@@ -6,6 +6,10 @@ import { ShapeFlags } from "../shared/ShapeFlags"
 
 // 这里定义 Fragment , 是一个 Symbol 值
 export const Fragment = Symbol('Fragment')
+
+// 定义 Text 节点类型
+export const Text = Symbol('Text')
+
 export function createVNode(type, props?, children?) {
   // 参数：
   // type -> 组件类型
@@ -55,6 +59,16 @@ export function createVNode(type, props?, children?) {
   // 返回创建组件的虚拟节点
   return vnode
 }
+
+
+// 创建 createTextNode 
+// 实现 渲染 文本的逻辑
+export function createTextNode(text: string) {
+  // 创建按 Text 类型的 虚拟节点 -> VNode
+  // 在到 patch() 中处理 Text 的 渲染
+  return createVNode(Text, {}, text)
+}
+
 
 
 // 这里判断类型
