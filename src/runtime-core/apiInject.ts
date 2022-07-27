@@ -40,7 +40,7 @@ export function provide(key, value) {
 }
 
 
-export function inject(key) {
+export function inject(key, defaultValue?) { // 实现 inject 具有默认值的功能 
   // 取数据 
 
   // 1. 获取 instance 
@@ -54,7 +54,17 @@ export function inject(key) {
 
     const parentProvides = currentInstance.parent.provides
 
-    // 
-    return parentProvides[key]
+    if (key in parentProvides) {
+      // 如果具有 key 时 
+      return parentProvides[key]
+    } else if (defaultValue) {
+
+      // 判断 默认值是否是函数
+      if (typeof defaultValue === 'function') {
+        return defaultValue()
+      }
+      // 返回默认值
+      return defaultValue
+    }
   }
 }

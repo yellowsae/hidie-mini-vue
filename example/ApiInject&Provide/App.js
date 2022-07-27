@@ -105,15 +105,21 @@ const Consumer = {
     const foo = inject('foo')
     const bar = inject('bar')
 
+    // 添加功能
+    // 1. 实现默认值
+    // const baz = inject('baz', "默认值Baz")
+    // 2. 默认值是一个函数
+    const baz = inject('baz', () => "默认值Baz")
     return {
       foo,
-      bar
+      bar,
+      baz
     }
   },
 
   // 渲染数据
   render() {
-    return h('div', {}, `Consumer渲染数据: - foo: ${this.foo} - bar: ${this.bar}`)
+    return h('div', {}, `Consumer渲染数据: - foo: ${this.foo} - bar: ${this.bar}  - ${this.baz}`)
   }
 }
 
