@@ -14,7 +14,25 @@ export function provide(key, value) {
 
   // 3. 存储数据
   if (currentInstance) {
-    const { provides } = currentInstance
+    // 获取 provides
+    let { provides } = currentInstance
+
+    // 获取 父级 provides 对象
+    const parentProvides = currentInstance.parent && currentInstance.parent.provides
+
+
+    // 注意点：这里可能是 init 初始化 
+    // 判断初始化： 当 provides 等于它 父级的 provides 对象时，说明是初始化
+    if (provides === parentProvides) {
+
+      // 初始化时，给 provides 对象赋值 -> 形成原型链
+
+      // 改写 provides 指向 parent的 provides ： 形成原型链
+      provides = currentInstance.provides = Object.create(parentProvides)
+      //  currentInstance.provides 当前组件的 provides
+
+    }
+
 
     // 存储 {  foo: fooValue }
     provides[key] = value

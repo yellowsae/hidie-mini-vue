@@ -13,7 +13,10 @@ const Provider = {
 
   render() {
     // children -> [] ;  渲染 Consumer
-    return h('div', {}, [h('p', {}, "Provider"), h(Consumer)])
+    // return h('div', {}, [h('p', {}, "Provider"), h(Consumer)])
+
+    // 这里改为渲染中间层组件
+    return h('div', {}, [h('p', {}, "Provider"), h(ProviderTwo)])
   }
 }
 
@@ -38,9 +41,56 @@ const Provider = {
 
 
 // // 实现一个中间层组件 
-// const ProviderTwo = {
+const ProviderTwo = {
+  name: 'ProviderTwo',
+  setup() {
 
-// }
+    /**
+     * 处理 provides 的指向, 
+     * 当 parent 没有值时-> 初始，provides 为 空
+     * 当 parent 有值时 -> 说明当前组件是一个子组件，provides 指向 parent 的 provides
+     * provides: parent ? parent.provides : {},
+     * 
+     * 处理完  provides 的指向, 视图能够渲染了 
+     */
+
+    // 加上另一种情况 
+    // 在中间层使用 provide() 时
+    // 在中间层使用 inject 时
+
+    // 往子组件传输数据 
+    provide("foo", "这是ProviderTwo提供的数据 fooValueTow")
+    // 往父组件获取数据
+    const foo = inject('foo')
+
+
+    /**
+     * 实现逻辑：
+     * 本质是通过原型链的方式查找 
+     * 重点： 把中间层的组件 provide 的指向父组件的 provide
+     * 这样就形成一个原型链 
+     * 
+     *
+     * 后代组件 -> 子组件  -> 父组件 
+     *
+     * 子组件具有自己的 provide 和 inject 的值  
+     * 当子组件没有 后代组件需求的 inject 值数据时，会从父组件的 provide 中查找 （找原型链）
+     */
+
+    // 返回foo
+    return {
+      foo
+    }
+  },
+
+  render() {
+    // children -> [] ;  渲染 Consumer
+    // return h('div', {}, [h('p', {}, "ProviderTwo"), h(Consumer)])
+
+    // 这里改为渲染中间层组件
+    return h('div', {}, [h('p', {}, `ProviderTwo  -> Foo: ${this.foo}`), h(Consumer)])
+  }
+}
 
 
 

@@ -27,9 +27,12 @@ export function createComponentInstance(vnode, parent) {
     // 初始化 slots
     slots: {},
 
-    // 定义 provodes 对象, 存储数据
-    provides: {},
-    // 定义 parent 对象, 子组件取到的数据
+    // 定义 provides 对象, 存储数据
+    // 处理 provides 的指向, 
+    // 当 parent 没有值时-> 初始，provides 为 空
+    // 当 parent 有值时 -> 说明当前组件是一个子组件，provides 指向 parent 的 provides
+    provides: parent ? parent.provides : {},
+    // 定义 parent 对象, 子组件取到的数据, 是父组件的实例 instance
     parent,
   }
 
