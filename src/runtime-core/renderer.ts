@@ -11,11 +11,12 @@ export function createRenderer(options) { // 接收 options 参数
 
   // 这个options 参数就是传入过来的 稳定接口
   // 解构出来渲染函数
-  const {
-    createElement,
-    patchProp,
-    insert
-  } = options
+  const { createElement, patchProp, insert } = options
+
+  // 这里设置别名不生效
+  // const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options
+  // const { hostCreateElement: createElement, hostPatchProp: patchProp, hostInsert: insert } = options
+
 
   // 在mount()方法定义的render()函数，接收创建的虚拟节点vnode和根容器，交给patch()函数进行渲染
   function render(vnode, container) {  // 取消导出
