@@ -2,12 +2,15 @@
 
 // 导出出口文件
 
-export { createApp } from "./createApp"
+// export { createApp } from "./createApp"
+// 这里createApp 已经被重构了， 存在 renderer.ts 的 createRenderer（）函数返回值中
+
 export { h } from "./h"
 export { renderSlots } from "./helper/renderSlot"
 export { createTextNode } from "./vnode"
 export { getCurrentInstance } from "./component"
 export { inject, provide } from "./apiInject"
+export { createRenderer } from "./renderer"
 /**
  * 初始化 runtime-core 的流程 和 初始化 组件 的流程总结
  * 
