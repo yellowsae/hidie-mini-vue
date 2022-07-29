@@ -6,7 +6,7 @@ import { createRenderer } from '../runtime-core'
 function createElement(type) {  // 接收 type 属性
 
   // 测试
-  console.log("createElement-------------------")
+  // console.log("createElement-------------------")
 
   // 返回创建 Element  标签
   return document.createElement(type)
@@ -15,7 +15,7 @@ function createElement(type) {  // 接收 type 属性
 
 // 赋值属性
 function patchProp(el, key, val) {
-  console.log("patchProp-------------------")
+  // console.log("patchProp-------------------")
 
   // 接收 el & key & val
 
@@ -48,7 +48,7 @@ function patchProp(el, key, val) {
 
 // 添加到容器
 function insert(el, parent) {
-  console.log("insert-------------------")
+  // console.log("insert-------------------")
 
   // 接收 el & 父级容器 
 
