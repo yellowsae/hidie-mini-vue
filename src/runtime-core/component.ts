@@ -3,6 +3,7 @@ import { initProps } from "./componentProps"
 import { shallowReadonly } from "../reactivity/reactive"
 import { emit } from "./componentEmit"
 import { initSlots } from "./componentSlots"
+import { proxyRefs } from "../reactivity"
 
 // 创建一个组件的实例对象 -> instance
 export function createComponentInstance(vnode, parent) {
@@ -34,6 +35,11 @@ export function createComponentInstance(vnode, parent) {
     provides: parent ? parent.provides : {},
     // 定义 parent 对象, 子组件取到的数据, 是父组件的实例 instance
     parent,
+
+    // 定义isMounted 判断 Element 是否是初始化 
+    isMounted: false,
+    // 定义 subTree 存储上一次更新的 VNode
+    subTree: {}
   }
 
   // 声明 emit 方法， 挂载到 component.emit 上
@@ -154,7 +160,8 @@ function handleStupResult(instance, stupResult: any) {
 
   if (typeof stupResult === 'object') {
     // 将这个值注入到 instance 实例上
-    instance.setupState = stupResult
+    // 使用 proxyRefs 函数包裹，可以 让ref 数据在 render() 中不适用 .value 方式访问数据
+    instance.setupState = proxyRefs(stupResult)
   }
 
   // 需要保证 组件必须要用 render 函数

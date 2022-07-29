@@ -1,3 +1,4 @@
+import { effect } from "../reactivity/effect"
 import { isObject } from "../shared/index"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
@@ -25,14 +26,20 @@ export function createRenderer(options) { // 接收 options 参数
 
     //render 的作用 -> 主要调用 patch() 方法
 
-    patch(vnode, container, null)
+    // 初始化逻辑 n1 -> null
+    patch(null, vnode, container, null)
     // 使用 patch() 函数 为了方便递归
   }
 
 
   // 目的为了根据判断 虚拟节点，都组件或者是 Element 进行一个渲染
   // patch(虚拟节点, 容器)
-  function patch(vnode, container, parentComponent) {
+
+  // patch() 接收新的参数
+  // n1 是旧的虚拟节点
+  // n2 是新的虚拟节点
+  // 如果 n1 不存在 --- 初始化 ,  n1 存在那就是 更新逻辑
+  function patch(n1, n2, container, parentComponent) {
     // 实现 shapeFlag - vue 
     // shapeFlag 的作用是， 描述当前节点的类型，是一个 Element 还是一个组件 | children 是一个字符串 还是一个数组
 
@@ -41,36 +48,35 @@ export function createRenderer(options) { // 接收 options 参数
 
     // console.log(vnode.type)  可以看到  vnode.type 要么是 组件类型 -> Object , 要么是 Element 类型 ->  string
 
-    const { type } = vnode  // type 组件的类型 
+    const { type, shapeFlag } = n2  // type 组件的类型 
     switch (type) {
 
       // 如果是 Fragment 包裹的标签
       case Fragment:
         // 就调用 processFragment 函数
-        processFragment(vnode, container, parentComponent)
+        processFragment(n1, n2, container, parentComponent)
         break
 
       // 如果是 Text 的逻辑
       case Text:
         // 如果是 Text 节点
-        processText(vnode, container)
+        processText(n1, n2, container)
         break
 
       // 如果不是，则走 默认的逻辑
       default:
         // 使用 ShapeFlags -> 进行判断 类型
-        const { shapeFlag } = vnode
         // 这里判断 vnode.type 类型 -> ELEMENT
         if (shapeFlag & ShapeFlags.ELEMENT) {
           // if (typeof vnode.type === "string") {
           // 如果 vnode.type 是 string 类型, 表示它是 Element 
-          processElement(vnode, container, parentComponent)
+          processElement(n1, n2, container, parentComponent)
 
           // 这里判断是否组件类型  -> STATEFUL_COMPONENT
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
           // } else if (isObject(vnode.type)) {  、// 之前的判断
           // 如果 vnode.type 是 object 类型 , 表示它是 组件类型
-          processComponent(vnode, container, parentComponent)
+          processComponent(n1, n2, container, parentComponent)
         }
         break
     }
@@ -106,16 +112,16 @@ export function createRenderer(options) { // 接收 options 参数
   }
 
   // 初始化 TextNode 的逻辑
-  function processText(vnode: any, container: any) {
+  function processText(n1, n2: any, container: any) {
     // 渲染 Text 的虚拟节点的 Vnode 的逻辑 
 
 
     // 1. 拿到用户传入的 text
-    const { children } = vnode;
+    const { children } = n2;
 
     // 2. 创建一个 TextNode
     // 记得使用 vnode.el 赋值
-    const textNode = (vnode.el = document.createTextNode(children))
+    const textNode = (n2.el = document.createTextNode(children))
 
     // 3. 添加到 container 内容
     container.appendChild(textNode)
@@ -123,22 +129,38 @@ export function createRenderer(options) { // 接收 options 参数
 
 
   // 初始化 Fragment 的逻辑
-  function processFragment(vnode: any, container: any, parentComponent) {
+  function processFragment(n1, n2: any, container: any, parentComponent) {
     // 调用 mountChildren
-    mountChildren(vnode, container, parentComponent)
+    mountChildren(n2, container, parentComponent)
   }
 
 
 
   // 当 vnode 是一个 Element 类型执行这个函数
-  function processElement(vnode: any, container: any, parentComponent) {
-    // 进行一个 Element 的渲染 
+  function processElement(n1, n2, container: any, parentComponent) {
 
-    // 1. Element 分为两种情况 -> init 初始化 ->  update 更新
+    // 判断 n1 
+    if (!n1) {
+      // n1 不存在 表示初始化
+      // 进行一个 Element 的渲染 
+
+      // 1. Element 分为两种情况 -> init 初始化 ->  update 更新
 
 
-    // 实现初始化Element的逻辑
-    mountElement(vnode, container, parentComponent)
+      // 实现初始化Element的逻辑
+      mountElement(n2, container, parentComponent)
+    } else {
+      // n1 有值 表示更新逻辑
+      patchElement(n1, n2, container)
+    }
+
+  }
+
+  // Element 更新 
+  function patchElement(n1, n2, container) {
+    console.log("patchElement")
+    console.log("n1", n1)
+    console.log("n2", n2)
 
   }
 
@@ -249,15 +271,15 @@ export function createRenderer(options) { // 接收 options 参数
     // 循环 children 内的虚拟节点, 然后调用 patch()进行递归->再去渲染
     vnode.children.forEach((v) => {
       // 这里 container 容器设置为 el 
-      patch(v, container, parentComponent)
+      patch(null, v, container, parentComponent)
     })
   }
 
   // 实现组件初始化的总体函数
-  function processComponent(vnode: any, container: any, parentComponent) {
+  function processComponent(n1, n2, container: any, parentComponent) {
     // 1. 挂载组件
     // 使用 mountComponent 函数 挂载组件
-    mountComponent(vnode, container, parentComponent)
+    mountComponent(n2, container, parentComponent)
   }
 
 
@@ -277,28 +299,100 @@ export function createRenderer(options) { // 接收 options 参数
 
   function setupRenderEffect(instance: any, initialVNode, container: any) {
 
-    // 当调用 render时候，应该拿到 组件的代理对象
-    const { proxy } = instance
-    // 拿到 proxy 后, 在调用 render时候，进行绑定
+    /**
+     * 这里的流程是进行 Element 的渲染 
+     * 
+     * 这里 使用 effect 函数，来监听 ref 的响应式
+     * 
+     * 
+     * 使用一个变量判断当前是否是 初始化逻辑 & 更新逻辑 
+     * 这里变量挂载在 instance 中  instance.isMounted 
+     * 
+     * 
+     * 主要触发更新页面逻辑的是 patch() 函数
+     * 在patch() 函数初始化时  传入 n1 : null  n2 当前的VNode 虚拟节点 
+     * 当 patch() 执行更新的逻辑时，传入 n1 : 老的虚拟节点, n2 新的虚拟节点
+     * 
+     * 当执行 patch 函数主要的逻辑时，都是基于 n2 去做的, 所以当前代码进行很多的重构逻辑
+     * 
+     * 
+     * 这就是 Element 更新的逻辑  
+     */
 
-    // 调用 render() 函数
-    // subTree 是 h() 函数返回的 vnode, 也是虚拟节点树 subTree 
-    const subTree = instance.render.call(proxy)  // 绑定 proxy
-
-    // 再基于返回过来的虚拟节点 vnode, 再进一步的调用 patch() 函数
-    // vnode -> subTree 是一个 Element类型 ->  挂载 mountElement
-
-    // 递归调用 -> patch(虚拟节点，容器)
-
-    // 这里赋值 instance, 也就是父级组件
-    patch(subTree, container, instance)
-    // patch()再去判断，-> subTree 的类型 -> 可能是 组件类型 或者 Element类型 -> 一直递归进行下去
+    // 使用 effect监视模板中响应式数据的变化 
+    effect(() => {
+      // 然后实现依赖收集 & 触发依赖的实现
+      // 把 渲染的逻辑 写在这里， 收集依赖
 
 
-    // 实现 $el 的关键时机， 在这个时候赋值 el
-    // 当patch() 再次调用，可能是 进行Element流程
-    // 将 subTree.el 赋值给 vnode.el
-    initialVNode.el = subTree.el
+      // 使用 isMounted 判断是否 init 初始化
+      if (!instance.isMounted) {
+        // 初始化 
+        console.log("init")
+        // 当调用 render时候，应该拿到 组件的代理对象
+        const { proxy } = instance
+        // 拿到 proxy 后, 在调用 render时候，进行绑定
+
+        // 调用 render() 函数
+        // subTree 是 h() 函数返回的 vnode, 也是虚拟节点树 subTree 
+
+        // 使用 instance.subTree 存储  subTree, 在更新时候需要用， 需要在 component 初始化 subTree 
+        const subTree = (instance.subTree = instance.render.call(proxy))  // 绑定 proxy
+        // const subTree = instance.render.call(proxy)  // 绑定 proxy
+
+
+        // 查看 当响应式数据发生变化时， 虚拟节点 subTree 的变化 
+        // console.log(subTree)
+
+        // 再基于返回过来的虚拟节点 vnode, 再进一步的调用 patch() 函数
+        // vnode -> subTree 是一个 Element类型 ->  挂载 mountElement
+
+        // 递归调用 -> patch(虚拟节点，容器)
+
+        // 这里赋值 instance, 也就是父级组件
+        // 初始化 -> n1 为 null
+        patch(null, subTree, container, instance)
+        // patch()再去判断，-> subTree 的类型 -> 可能是 组件类型 或者 Element类型 -> 一直递归进行下去
+
+
+        // 实现 $el 的关键时机， 在这个时候赋值 el
+        // 当patch() 再次调用，可能是 进行Element流程
+        // 将 subTree.el 赋值给 vnode.el
+        initialVNode.el = subTree.el
+
+        // 改变 isMounted 状态 
+        instance.isMounted = true
+      } else {
+        // 更新逻辑 
+        console.log("update")
+
+        // 实现： 在初始化时 instance 中用一个变量 保存 subTree 的值
+        // 在更新时候，获取到 上一个 subTree 
+
+        const { proxy } = instance
+        // 拿到更新后的 subTree
+        const subTree = instance.render.call(proxy)
+
+        // 取出 之前保存上一次组件的 subTree 
+        const prevSubTree = instance.subTree
+
+        // console.log("当前的subTree", subTree)
+        // console.log("之前的subTree", prevSubTree)
+
+        // 再次重新更新  instance.subTree  -> 达到多次更新 
+        instance.subTree = subTree
+
+
+        // 递归调用 -> patch(虚拟节点，容器)
+        // 这里赋值 instance, 也就是父级组件
+
+        // 实现 patch() 的更新逻辑 
+        // 添加 n1 n2;  老的虚拟节点 & 新的虚拟节点
+        patch(prevSubTree, subTree, container, instance)
+      }
+
+
+    })
   }
 
 
