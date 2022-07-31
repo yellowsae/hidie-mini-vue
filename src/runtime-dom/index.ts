@@ -68,13 +68,35 @@ function insert(el, parent) {
 }
 
 
+// remove 
+// 删除DOM节点
+function remove(child) {
+  // 1. 拿到 child 父级的 节点 -> div
+  const parent = child.parentNode
+  // 判断 parent 是否存在
+  if (parent) {
+    // 执行删除
+    parent.removeChild(child)
+  }
+}
+
+
+// SetElementText
+// 实现添加文本节点的接口
+function setElementText(el, text) {
+  el.textContent = text
+}
+
+
 // 渲染接口 传入到 createRenderer 中
 // 使用 renderer 接收 createRenderer 返回值 
 const renderer: any = createRenderer({
   // 传入函数
   createElement,
   patchProp,
-  insert
+  insert,
+  remove,
+  setElementText
 })
 
 

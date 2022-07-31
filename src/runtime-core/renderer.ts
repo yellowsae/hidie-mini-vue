@@ -15,7 +15,13 @@ export function createRenderer(options) { // 接收 options 参数
   // const { createElement, patchProp, insert } = options
 
   // 这里设置别名不生效
-  const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options
+  const {
+    createElement: hostCreateElement,
+    patchProp: hostPatchProp,
+    insert: hostInsert,
+    remove: hostRemove,
+    setElementText: hostSetElementText
+  } = options
   // const { hostCreateElement: createElement, hostPatchProp: patchProp, hostInsert: insert } = options
 
 
@@ -131,7 +137,7 @@ export function createRenderer(options) { // 接收 options 参数
   // 初始化 Fragment 的逻辑
   function processFragment(n1, n2: any, container: any, parentComponent) {
     // 调用 mountChildren
-    mountChildren(n2, container, parentComponent)
+    mountChildren(n2.children, container, parentComponent)
   }
 
 
@@ -151,13 +157,13 @@ export function createRenderer(options) { // 接收 options 参数
       mountElement(n2, container, parentComponent)
     } else {
       // n1 有值 表示更新逻辑
-      patchElement(n1, n2, container)
+      patchElement(n1, n2, container, parentComponent)
     }
 
   }
 
   // Element 更新 
-  function patchElement(n1, n2, container) {
+  function patchElement(n1, n2, container, parentComponent) {
     // 实现Element更新的逻辑
     console.log("patchElement")
     console.log("n1", n1)
@@ -170,10 +176,107 @@ export function createRenderer(options) { // 接收 options 参数
 
     // 取出 el, 并赋值 给n2
     const el = (n2.el = n1.el)
+
+    // 实现 Children 的更新
+    patchChildren(n1, n2, el, parentComponent)
+
+    // 实现Props的更新
     // 定义patchProps的函数
     patchProps(el, oldProps, newProps)
 
   }
+
+  // 实现 Children 的更新
+  function patchChildren(n1, n2, container, parentComponent) { // 传入 el  和 父组件
+    /**
+     * 实现 Children 的更新逻辑
+     * 
+     * 1. 先判断当前节点 和 老的节点 的 children 的状态，看看他是 text 还是 Array
+     * 2. 实现更新内容， 基于 shapeFlags 判断 children 的类型， 
+     *  2.1 如果是 Array -> Text  节点
+     *    - 实现： 1. 先清空掉数组， 2. 设置文本
+     *  2.2 如果是 Text -> Text
+     *    - 实现： 判断老的Text 和 新的 Text 是否相同，如果不同，则更新文本
+     *  2.3 如果是 Text -> Array
+     *    - 实现：1. 把Text清空，让后获取到Array的children , 重新进行mountChildren 渲染
+     */
+
+    // 1. 拿到 n2 的 shapeFlag
+    const { shapeFlag } = n2
+    // 拿到 n1 的 shapeFlag
+    const prevShapeFlag = n1.shapeFlag
+
+
+    // 拿到要更新的 Text 
+    const c2 = n2.children
+    // 拿到之前老节点的 值
+    const c1 = n1.children
+
+    // 2. 判断 n2 的 shapeFlag
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) { // 更新后的节点是一个 Text
+
+      // 进一步判断
+      // if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {  // 老的节点是一个 Array
+
+      //   // 这里就是 children :   Array -> Text 的修改 
+
+      //   // 逻辑：
+      //   // 1. 把老的Array清空
+      //   unmountChildren(n1.children)
+
+      //   // 2. 设置 text 文本
+      //   // hostSetElementText() 接口
+      //   // 传入 div -> 也就是 老的节点的 el 
+      //   hostSetElementText(container, c2)
+      // } else {  // 这里进行的逻辑为： Text -> Text 的修改
+
+      //   // 当两个节点不相等时才取更新
+      //   if (c1 !== c2) {
+      //     // 设置新的文本
+      //     hostSetElementText(container, c2)
+      //   }
+      // }
+
+      // 因为以上代码使用了两次 hostSetElementText 
+      // 进行重构重构 
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {  // 老的节点是一个 Array
+        // 执行 children-> Array 的清空
+        unmountChildren(n1.children)
+      }
+
+      // 当两个节点不相等时才取更新
+      if (c1 !== c2) {
+        // 这里
+        hostSetElementText(container, c2)
+      }
+    } else { // 更新后的节点是一个 Array
+      // 已经确认 n2 的 shapeFlag 是一个 Array
+      // 判断 n1 的 shapeFlag， 判断之前的是不是Text节点
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // Text -> Array
+        // 1. 把Text清空
+        hostSetElementText(container, "")
+
+        // 2. 渲染 children -> 之前实现过 mountChildren 渲染
+        mountChildren(c2, container, parentComponent)
+      }
+    }
+
+  }
+
+  // 把老的Array清空
+  function unmountChildren(children) {
+    // 遍历 children
+    for (let i = 0; i < children.length; i++) {
+      // 拿出 el
+      const el = children[i].el
+
+      // 执行删除逻辑
+      // 写在runtime-dom 的接口上
+      hostRemove(el)
+    }
+  }
+
   // const EMPTY_OBJ = {}
   // 实现 patchProps 更新Props的函数
   function patchProps(el, oldProps, newProps) {
@@ -314,7 +417,7 @@ export function createRenderer(options) { // 接收 options 参数
       // } else if (Array.isArray(children)) {
       // 表示 [h(), h()]
       // 使用 mountChildren 重构 children - Array 的渲染
-      mountChildren(vnode, el, parentComponent)
+      mountChildren(vnode.children, el, parentComponent)
     }
 
 
@@ -331,9 +434,9 @@ export function createRenderer(options) { // 接收 options 参数
 
 
   // 封装 渲染 children 的函数
-  function mountChildren(vnode, container, parentComponent) {
+  function mountChildren(children, container, parentComponent) {
     // 循环 children 内的虚拟节点, 然后调用 patch()进行递归->再去渲染
-    vnode.children.forEach((v) => {
+    children.forEach((v) => {
       // 这里 container 容器设置为 el 
       patch(null, v, container, parentComponent)
     })
