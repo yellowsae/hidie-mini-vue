@@ -1,5 +1,5 @@
 import { effect } from "../reactivity/effect"
-import { isObject } from "../shared/index"
+import { EMPTY_OBJ, isObject } from "../shared/index"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
 import { createAppApi } from "./createApp"
@@ -12,10 +12,10 @@ export function createRenderer(options) { // 接收 options 参数
 
   // 这个options 参数就是传入过来的 稳定接口
   // 解构出来渲染函数
-  const { createElement, patchProp, insert } = options
+  // const { createElement, patchProp, insert } = options
 
   // 这里设置别名不生效
-  // const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options
+  const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = options
   // const { hostCreateElement: createElement, hostPatchProp: patchProp, hostInsert: insert } = options
 
 
@@ -158,11 +158,75 @@ export function createRenderer(options) { // 接收 options 参数
 
   // Element 更新 
   function patchElement(n1, n2, container) {
+    // 实现Element更新的逻辑
     console.log("patchElement")
     console.log("n1", n1)
     console.log("n2", n2)
 
+
+    // 执行Props的更新
+    const oldProps = n1.props || EMPTY_OBJ   // 可能 n1.props 没有赋值 赋值为 EMPTY_OBJ 空对象
+    const newProps = n2.props || EMPTY_OBJ
+
+    // 取出 el, 并赋值 给n2
+    const el = (n2.el = n1.el)
+    // 定义patchProps的函数
+    patchProps(el, oldProps, newProps)
+
   }
+  // const EMPTY_OBJ = {}
+  // 实现 patchProps 更新Props的函数
+  function patchProps(el, oldProps, newProps) {
+    /**
+     * 实现 Props 的更新
+     * 
+     * props的更新要求 
+     * 1. foo 之前的值 与 之后的值不一样了， 修改 props 属性
+     * 2. foo 更新后变为了 null | undefined  ；  删除了 foo 属性
+     * 3. bar 更新后这个属性在更新后没有了， 删除 bar 属性
+     */
+
+    // 优化1. 当 oldProps 与 newProps 不相同时，需要更新
+    if (oldProps !== newProps) {
+
+      // 实现1. 循环 newProps  与 oldProps 做对比
+      for (const key in newProps) {
+        // 取到 oldProps 之前的 props
+        const prevProp = oldProps[key];
+        // 取到 新的 props 
+        const nextProp = newProps[key];
+
+        // 判断 prevProps 与 nextProp 是否一样
+        if (prevProp !== nextProp) {
+          // 当它们不等时， 说明 props 发生了变化
+          // 这里进行触发更新的逻辑
+
+          // 调用 hostPatchProp() 接口 
+          // 因为就是在这里实现props的赋值的 
+
+          // 传入  之前的Prop,  更新后的Prop
+          hostPatchProp(el, key, prevProp, nextProp)
+        }
+      }
+
+      // 优化2: 如果 oldProps 为空，不用进行对比
+      if (oldProps !== EMPTY_OBJ) {
+        // 实现3. bar 更新后这个属性在更新后没有了， 删除 bar 属性
+        // 遍历 oldProps 
+        for (const key in oldProps) {
+          // 如果 key 不在 newProps 中
+          if (!(key in newProps)) {
+            //  删除这个 key
+            // 调用 hostPatchProp() 接口 
+            hostPatchProp(el, key, oldProps[key], null)
+          }
+        }
+      }
+    }
+
+  }
+
+
 
   // 初始化 Element
   function mountElement(vnode: any, container: any, parentComponent) {
@@ -188,7 +252,7 @@ export function createRenderer(options) { // 接收 options 参数
     // const el = (vnode.el = document.createElement(vnode.type))  // 使用 el 保存根节点 -> 给el赋值
 
     // 接口1 createElement
-    const el = (vnode.el = createElement(vnode.type))  // 使用 el 保存根节点 -> 给el赋值
+    const el = (vnode.el = hostCreateElement(vnode.type))  // 使用 el 保存根节点 -> 给el赋值
 
     // 2. props , 解析属性 -> vnode
     const { props } = vnode
@@ -230,7 +294,7 @@ export function createRenderer(options) { // 接收 options 参数
 
         // 接口2 patchProp()
         // 传入需要赋值的参数
-        patchProp(el, key, val)
+        hostPatchProp(el, key, null, val)
       }
     }
 
@@ -262,7 +326,7 @@ export function createRenderer(options) { // 接收 options 参数
 
     // 接口3 insert()
     // 添加到容器
-    insert(el, container)
+    hostInsert(el, container)
   }
 
 

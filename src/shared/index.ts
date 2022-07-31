@@ -45,3 +45,6 @@ export const toHandlerKey = (str: string) => {
 // // 判断 handler 有没有， 有就调用
 // // 将 args 传入 handler 函数中，然后在APP组件上 emit(a,b)接收参数
 // handler && handler(...args)
+
+
+export const EMPTY_OBJ = {}

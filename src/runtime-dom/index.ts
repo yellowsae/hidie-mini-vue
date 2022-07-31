@@ -14,10 +14,11 @@ function createElement(type) {  // 接收 type 属性
 
 
 // 赋值属性
-function patchProp(el, key, val) {
+// 新增 pervProps之前的Props,  修改后的 nextProps
+function patchProp(el, key, prevProp, nextVal) {
   // console.log("patchProp-------------------")
 
-  // 接收 el & key & val
+  // 接收 el & key & nextVal
 
   // 进行重构
   // 处理注册事件功能
@@ -31,16 +32,26 @@ function patchProp(el, key, val) {
   if (isOn(key)) {
     // if (key === 'onClick') {
     // 添加 注册点击事件 
-    // val 就是 onClick 的会调函数
-    // el.addEventListener('click', val)
+    // nextVal 就是 onClick 的会调函数
+    // el.addEventListener('click', nextVal)
 
     // 获取事件名称
     const event = key.slice(2).toLowerCase()
-    el.addEventListener(event, val)
+    el.addEventListener(event, nextVal)
   } else {
     // 如果不是 on 之后的事件名称
-    // 设置 el 的属性值
-    el.setAttribute(key, val)
+
+    // 实现2： foo 更新后变为了 null | undefined  ；  删除了 foo 属性
+    // 新增判断： 如果 nextVal 为 undefined || null 时
+    if (nextVal === undefined || nextVal === null) {
+      // 执行删除
+      el.removeAttribute(key)
+    } else {
+      // nextVal 有值 时 设置属性值
+      // 设置 el 的属性值
+      el.setAttribute(key, nextVal)
+
+    }
   }
 
 }
