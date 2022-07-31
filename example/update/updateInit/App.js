@@ -30,3 +30,12 @@ export const App = {
     )
   }
 }
+
+/**
+ * 实现 Props 的更新
+ * 
+ * props的更新要求 
+ * 1. foo 之前的值 与 之后的值不一样了， 修改 props 属性
+ * 2. foo 更新后变为了 null | undefined  ；  删除了 foo 属性
+ * 3. bar 更新后这个属性在更新后没有了， 删除 bar 属性
+ */
