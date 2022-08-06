@@ -35,19 +35,19 @@ import { h, ref } from "../../../lib/guide-mini-vue.esm.js"
 // 1. 左侧对比
 // ( A B ) C
 // ( A B ) D E
-const prevChildren = [
-  // 多谢了一个 Key
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "C" }, "C"),
-];
+// const prevChildren = [
+//   // 多谢了一个 Key
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C" }, "C"),
+// ];
 
-const nextChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "D" }, "D"),
-  h("p", { key: "E" }, "E"),
-];
+// const nextChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "E" }, "E"),
+// ];
 /**
  * 实现思路： 
  * 1. 基于指针 i  e1  e2 
@@ -60,14 +60,41 @@ const nextChildren = [
  *   - 当两个Array元素不同时，i指针停止，得到 i 的值
  * 
  * 3. 根据 得到 i  e1  e2 判断大小，确定Array是 增加 | 删除 | 修改 | 移动
- *  - 这里 左侧对比 位创建 D E 节点
+ *  - 这里 左侧对比 为创建 D E 节点
+ *  - 基于指针的判断 i <= e1 && i <= e2
  *  - 调用 patch() 进行创建 渲染
  */
 
 
 
-// 2.右侧对比 
+// 2.右侧对比
+//  A ( B  C )
+//  D E (B C )
+const prevChildren = [
+  // 多谢了一个 Key
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C" }, "C"),
+];
 
+const nextChildren = [
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "E" }, "E"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C" }, "C"),
+];
+/**
+ * 1. 基于指针 i  e1  e2
+ * 
+ * 2. 循环 n2 n2 对比 
+ *  - i 初始为 0, 因为是左侧对比，i 基本固定不动 
+ *  - 当 n1 n2 形同时， 移动 e1 e2  -> e1--, e2-- 
+ *  - 当 n1 n2 不同时， 得到变化的节点，和 e1 e2 变化的值
+ * 
+ * 3. 根据 得到 i  e1  e2 判断大小，确定Array是 增加 | 删除 | 修改 | 移动
+ * - 这里 右侧对比 为 删除 A ，创建 D E 节点
+ * - 基于指针的判断 i <= e1 && i <= e2
+ */
 
 export default {
   name: "ArrayToArray",
