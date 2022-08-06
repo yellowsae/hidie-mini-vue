@@ -23,10 +23,10 @@ export const App = {
         // h(TextToText),
 
         // 老的是 Text ， 新的是 Array
-        h(TextToArray),
+        // h(TextToArray),
 
         // 老的是 Array ， 新的是 Array
-        // h(ArrayToArray)
+        h(ArrayToArray)
       ])
   }
 }

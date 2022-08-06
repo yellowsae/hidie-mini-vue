@@ -259,9 +259,74 @@ export function createRenderer(options) { // 接收 options 参数
 
         // 2. 渲染 children -> 之前实现过 mountChildren 渲染
         mountChildren(c2, container, parentComponent)
+      } else {
+        // 这里就行进行 diff 算法的逻辑 
+        // 老Array -> 新Array
+        // 使用 patchKeyChildren 函数实现
+        // 传入 老的 Array 和 新的 Array
+        patchKeyChildren(c1, c2, container, parentComponent)
       }
     }
 
+  }
+
+  // Array -> Array : diff 算法的逻辑
+  function patchKeyChildren(c1, c2, container, parentComponent) {
+
+    /**
+     * 1. 左侧对比
+     * ( A B ) C
+     * ( A B ) D E
+     * 
+     * 实现思路： 
+     * 1. 基于指针 i  e1  e2 
+     *  - 其中 i 指针为 0 ， 指向两个数组的头部 
+     *  - e1  为 老节点的 尾指针,  值为 e1 = n1.children.length - 1  Array1 的元素个数 
+     *  - e2  为新节点的 尾指针， 值尾 e2 = n2.children.length - 1  Array2 的元素个数
+     * 
+     * 2. 基于左侧对比， n1.children [i]  于 n2.children [i] 比较
+     *   - 左侧元素相同， 把 i 指针向后一个位 移动  i++
+     *   - 当两个Array元素不同时，i指针停止，得到 i 的值
+     * 
+     * 3. 根据 得到 i  e1  e2 判断大小，确定Array是 增加 | 删除 | 修改 | 移动
+     *  - 这里 左侧对比 位创建 D E 节点
+     *  - 调用 patch() 进行创建 渲染
+     */
+
+    // 1. 创建指针索引 i  e1 e2
+    let i = 0
+    let e1 = c1.length - 1
+    let e2 = c2.length - 1
+
+    // 左侧对比 
+    // 2. 循环对比
+    while (i <= e1 && i <= e2) {
+      // 取出节点 
+      const n1 = c1[i]
+      const n2 = c2[i]
+
+      // 实现判断 n1 n2 是否一样的函数
+      function isSomeVNodeType(n1, n2) {
+        // 基于 type 
+        // 基于 key
+        return n1.type === n2.type && n1.key === n2.key
+      }
+
+      // 判断 n1 n2 连个节点是否一样
+      // 如果相同，调用 patch() 递归进行对比
+      if (isSomeVNodeType(n1, n2)) {
+        // 如果相同，调用 patch() 递归进行对比
+        patch(n1, n2, container, parentComponent)
+      } else {
+        // 如果两个虚拟节点不相等时
+        // 推出循环
+        break
+      }
+      // 移动 i 指针
+      i++
+    }
+    // 查看 i
+    console.log(i)
   }
 
   // 把老的Array清空

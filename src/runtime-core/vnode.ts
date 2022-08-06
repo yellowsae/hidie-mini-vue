@@ -24,7 +24,10 @@ export function createVNode(type, props?, children?) {
     // 初始化 el
     el: null,
     // 1. 初始化 ShapeFlags
-    shapeFlag: getShapeFlag(type)
+    shapeFlag: getShapeFlag(type),
+
+    // 添加 key 属性
+    key: props && props.key
   }
 
   // debugger
