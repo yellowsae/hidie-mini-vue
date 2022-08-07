@@ -149,17 +149,17 @@ import { h, ref } from "../../../lib/guide-mini-vue.esm.js"
 
 
 // 4. 右侧一样， 新的比老的长
-const prevChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-];
+// const prevChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+// ];
 
-const nextChildren = [
-  h("p", { key: "C" }, "C"),
-  h("p", { key: "D" }, "D"),
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-];
+// const nextChildren = [
+//   h("p", { key: "C" }, "C"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+// ];
 /**
  *  2. 右侧一样， 新的比老的长
  *  - Array1: A B
@@ -182,12 +182,66 @@ const nextChildren = [
 
 
 
+// 当老的Array 比 新的 Array长时 ,  -> 进行删除逻辑
+
+
+// 5. 基于左侧对比
+// const prevChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C" }, "C"),
+// ];
+
+// const nextChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+// ];
+/**
+ * 3. Array1 比 Array2 长
+ *  - Array1: A B C 
+ *  - Array2: A B
+ *  - 基于左侧对比，  找到乱序元素 C ,  执行删除 C 
+ * 
+ * 实现： 
+ *  1. 两个Array 进行对比，基于左侧对比， 因为是左侧一样，老的比新的长，多出了 C 节点，所以需要删除 C 节点
+ *  2. 在进行左侧对比时， 基于指针 i  e1  e2 , 确定 C节点的位置
+ *  3. 最后指针为 i = 2 | e1 = 2 | e2 = 1  , 确定多出了 C 节点
+ *  4. 执行删除 C 节点
+ * 
+ *    - 进行判断删除的逻辑 
+ *    - i > e2 && i <= e1 时，执行删除逻辑
+ *    - 删除 C 节点
+ */
 
 
 
 
 
 
+
+
+// 6. 基于右侧对比 
+const prevChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C" }, "C"),
+
+];
+
+const nextChildren = [
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C" }, "C"),
+];
+/**
+ * 4. Array1 比 Array2 长
+ *  - Array1: A B C
+ *  - Array2: B C
+ *  - 基于左侧对比， 得到变化的元素 A ，  执行删除 A 
+ *  
+ * - 基于右侧对比， 得到指针数据， i = 0 | e1 = 0 | e2 = -1
+ * - 发现于左侧对比，实现的判断一样  i <= e1 ; i > e2 ， 执行删除逻辑 
+ * - 删除 首部节点 A
+ */
 
 
 
@@ -214,7 +268,7 @@ const nextChildren = [
  * 4. Array1 比 Array2 长
  *  - Array1: A B C
  *  - Array2: B C
- *  - 基于左侧对比， 得到变化的元素 A ，  执行删除 A 
+ *  - 基于右侧对比， 得到变化的元素 A ，  执行删除 A 
  */
 
 
