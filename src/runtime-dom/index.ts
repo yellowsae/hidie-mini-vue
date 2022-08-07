@@ -58,13 +58,19 @@ function patchProp(el, key, prevProp, nextVal) {
 
 
 // 添加到容器
-function insert(el, parent) {
+// 添加 anchor 锚点
+function insert(child, parent, anchor) {
   // console.log("insert-------------------")
 
   // 接收 el & 父级容器 
 
   // 基于 DOM 实现的
-  parent.append(el)
+  // parent.append(el)
+
+
+  // 添加节点到执行位置之前 beforeinsert() 
+  // 这里设置 默认锚点的位置为 null, 如果没有传值，默认为 null， 也就是默认添加到最后， 和append 一样
+  parent.insertBefore(child, anchor || null)
 }
 
 

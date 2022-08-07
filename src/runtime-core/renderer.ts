@@ -33,7 +33,8 @@ export function createRenderer(options) { // 接收 options 参数
     //render 的作用 -> 主要调用 patch() 方法
 
     // 初始化逻辑 n1 -> null
-    patch(null, vnode, container, null)
+    // 把锚点赋值为 null， 因为初始时候
+    patch(null, vnode, container, null, null)
     // 使用 patch() 函数 为了方便递归
   }
 
@@ -45,7 +46,7 @@ export function createRenderer(options) { // 接收 options 参数
   // n1 是旧的虚拟节点
   // n2 是新的虚拟节点
   // 如果 n1 不存在 --- 初始化 ,  n1 存在那就是 更新逻辑
-  function patch(n1, n2, container, parentComponent) {
+  function patch(n1, n2, container, parentComponent, anchor) {
     // 实现 shapeFlag - vue 
     // shapeFlag 的作用是， 描述当前节点的类型，是一个 Element 还是一个组件 | children 是一个字符串 还是一个数组
 
@@ -60,7 +61,7 @@ export function createRenderer(options) { // 接收 options 参数
       // 如果是 Fragment 包裹的标签
       case Fragment:
         // 就调用 processFragment 函数
-        processFragment(n1, n2, container, parentComponent)
+        processFragment(n1, n2, container, parentComponent, anchor)
         break
 
       // 如果是 Text 的逻辑
@@ -76,13 +77,13 @@ export function createRenderer(options) { // 接收 options 参数
         if (shapeFlag & ShapeFlags.ELEMENT) {
           // if (typeof vnode.type === "string") {
           // 如果 vnode.type 是 string 类型, 表示它是 Element 
-          processElement(n1, n2, container, parentComponent)
+          processElement(n1, n2, container, parentComponent, anchor)
 
           // 这里判断是否组件类型  -> STATEFUL_COMPONENT
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
           // } else if (isObject(vnode.type)) {  、// 之前的判断
           // 如果 vnode.type 是 object 类型 , 表示它是 组件类型
-          processComponent(n1, n2, container, parentComponent)
+          processComponent(n1, n2, container, parentComponent, anchor)
         }
         break
     }
@@ -135,15 +136,15 @@ export function createRenderer(options) { // 接收 options 参数
 
 
   // 初始化 Fragment 的逻辑
-  function processFragment(n1, n2: any, container: any, parentComponent) {
+  function processFragment(n1, n2: any, container: any, parentComponent, anchor) {
     // 调用 mountChildren
-    mountChildren(n2.children, container, parentComponent)
+    mountChildren(n2.children, container, parentComponent, anchor)
   }
 
 
 
   // 当 vnode 是一个 Element 类型执行这个函数
-  function processElement(n1, n2, container: any, parentComponent) {
+  function processElement(n1, n2, container: any, parentComponent, anchor) {
 
     // 判断 n1 
     if (!n1) {
@@ -154,16 +155,16 @@ export function createRenderer(options) { // 接收 options 参数
 
 
       // 实现初始化Element的逻辑
-      mountElement(n2, container, parentComponent)
+      mountElement(n2, container, parentComponent, anchor)
     } else {
       // n1 有值 表示更新逻辑
-      patchElement(n1, n2, container, parentComponent)
+      patchElement(n1, n2, container, parentComponent, anchor)
     }
 
   }
 
   // Element 更新 
-  function patchElement(n1, n2, container, parentComponent) {
+  function patchElement(n1, n2, container, parentComponent, anchor) {
     // 实现Element更新的逻辑
     console.log("patchElement")
     console.log("n1", n1)
@@ -178,7 +179,7 @@ export function createRenderer(options) { // 接收 options 参数
     const el = (n2.el = n1.el)
 
     // 实现 Children 的更新
-    patchChildren(n1, n2, el, parentComponent)
+    patchChildren(n1, n2, el, parentComponent, anchor)
 
     // 实现Props的更新
     // 定义patchProps的函数
@@ -187,7 +188,7 @@ export function createRenderer(options) { // 接收 options 参数
   }
 
   // 实现 Children 的更新
-  function patchChildren(n1, n2, container, parentComponent) { // 传入 el  和 父组件
+  function patchChildren(n1, n2, container, parentComponent, anchor) { // 传入 el  和 父组件
     /**
      * 实现 Children 的更新逻辑
      * 
@@ -258,20 +259,20 @@ export function createRenderer(options) { // 接收 options 参数
         hostSetElementText(container, "")
 
         // 2. 渲染 children -> 之前实现过 mountChildren 渲染
-        mountChildren(c2, container, parentComponent)
+        mountChildren(c2, container, parentComponent, anchor)
       } else {
         // 这里就行进行 diff 算法的逻辑 
         // 老Array -> 新Array
         // 使用 patchKeyChildren 函数实现
         // 传入 老的 Array 和 新的 Array
-        patchKeyChildren(c1, c2, container, parentComponent)
+        patchKeyChildren(c1, c2, container, parentComponent, anchor)
       }
     }
 
   }
 
   // Array -> Array : diff 算法的逻辑
-  function patchKeyChildren(c1, c2, container, parentComponent) {
+  function patchKeyChildren(c1, c2, container, parentComponent, parentAnchor) { // 添加锚点
 
     // 1. 创建指针索引 i  e1 e2
     let i = 0
@@ -317,7 +318,7 @@ export function createRenderer(options) { // 接收 options 参数
       // 如果相同，调用 patch() 递归进行对比
       if (isSomeVNodeType(n1, n2)) {
         // 如果相同，调用 patch() 递归进行对比
-        patch(n1, n2, container, parentComponent)
+        patch(n1, n2, container, parentComponent, parentAnchor)
       } else {
         // 如果两个虚拟节点不相等时
         // 退出循环
@@ -352,7 +353,7 @@ export function createRenderer(options) { // 接收 options 参数
       // 2. 判断右侧 n1 n2 是否形同
       if (isSomeVNodeType(n1, n2)) {
         // 3. 如果相同，调用 patch() 递归进行对比, 并且创建 相同的节点
-        patch(n1, n2, container, parentComponent)
+        patch(n1, n2, container, parentComponent, parentAnchor)
       } else {
         // 如果两个虚拟节点不相等时
         // 退出循环
@@ -380,16 +381,6 @@ export function createRenderer(options) { // 接收 options 参数
      *    - 所以 i > e1  && i <= e2 时创建节点
      * 
      */
-    if (i > e1) {
-      if (i <= e2) {
-        // 调用 patch() 创建节点 
-        // 因为左侧对比到不同时，C 节点时， n1 是没有值的， n2 就是需要创建的新节点
-        // 把创建的 C 节点添加到尾部 
-        patch(null, c2[i], container, parentComponent)
-      }
-    }
-
-
 
 
     /**
@@ -408,6 +399,29 @@ export function createRenderer(options) { // 接收 options 参数
      *  - 创建 C 节点，添加到 Array2 头部 
      *      - 实现添加到头部需要 ： 锚点 -> 基于锚点 把创建的节点添加锚点的前一位置 
      */
+    if (i > e1) {
+      if (i <= e2) {
+        // 调用 patch() 创建节点 
+        // 因为左侧对比到不同时，C 节点时， n1 是没有值的， n2 就是需要创建的新节点
+        // 把创建的 C 节点添加到尾部 
+
+        // 声明一个锚点， 锚点等于 A 节点的el，把创建的节点，添加到A节点之前
+        // 声明一个位置 nextPos 
+        const nextPos = i + 1
+
+        // 因为这里的逻辑时 左侧对比 & 右侧对比 新节点比老节点长。 的逻辑都会执行这里 
+        // 所以需要设置一个锚点，根据锚点判断，是添加在 头部 还是 尾部
+        const anchor = i + 1 > c2.length ? null : c2[nextPos].el
+        // 分析： 判断 i + 1 > c2.length  新节点的元素个数, 如果大于那就是进行了左侧对比， 所以赋值锚点为 null ， 表示添加到最后的尾部位置 
+        //  如果 i + 1 没有大于 新节点的元素个数， 说明进行的是右侧对比，赋值锚点为 c2[i+1].el， 新节点的第二个位置的元素 ： A ，就是锚点, 
+
+
+        // 赋值锚点 
+        patch(null, c2[i], container, parentComponent, anchor)
+      }
+    }
+
+
 
   }
 
@@ -479,7 +493,7 @@ export function createRenderer(options) { // 接收 options 参数
 
 
   // 初始化 Element
-  function mountElement(vnode: any, container: any, parentComponent) {
+  function mountElement(vnode: any, container: any, parentComponent, anchor) {
 
     // 实现 渲染 Canvas 平台的API 
     /**
@@ -564,7 +578,7 @@ export function createRenderer(options) { // 接收 options 参数
       // } else if (Array.isArray(children)) {
       // 表示 [h(), h()]
       // 使用 mountChildren 重构 children - Array 的渲染
-      mountChildren(vnode.children, el, parentComponent)
+      mountChildren(vnode.children, el, parentComponent, anchor)
     }
 
 
@@ -576,29 +590,29 @@ export function createRenderer(options) { // 接收 options 参数
 
     // 接口3 insert()
     // 添加到容器
-    hostInsert(el, container)
+    hostInsert(el, container, anchor)
   }
 
 
   // 封装 渲染 children 的函数
-  function mountChildren(children, container, parentComponent) {
+  function mountChildren(children, container, parentComponent, anchor) {
     // 循环 children 内的虚拟节点, 然后调用 patch()进行递归->再去渲染
     children.forEach((v) => {
       // 这里 container 容器设置为 el 
-      patch(null, v, container, parentComponent)
+      patch(null, v, container, parentComponent, anchor)
     })
   }
 
   // 实现组件初始化的总体函数
-  function processComponent(n1, n2, container: any, parentComponent) {
+  function processComponent(n1, n2, container: any, parentComponent, anchor) {
     // 1. 挂载组件
     // 使用 mountComponent 函数 挂载组件
-    mountComponent(n2, container, parentComponent)
+    mountComponent(n2, container, parentComponent, anchor)
   }
 
 
   // 挂载组件mountComponent, 初始化组件实例
-  function mountComponent(initialVNode: any, container, parentComponent) {
+  function mountComponent(initialVNode: any, container, parentComponent, anchor) {
     // 1. 通过 vnode 创建一个组件的实例对象 ->  instance 
     const instance = createComponentInstance(initialVNode, parentComponent)
 
@@ -608,10 +622,10 @@ export function createRenderer(options) { // 接收 options 参数
     setupComponent(instance)
 
     // 3. 开始调用 组件的 render 函数
-    setupRenderEffect(instance, initialVNode, container)
+    setupRenderEffect(instance, initialVNode, container, anchor)
   }
 
-  function setupRenderEffect(instance: any, initialVNode, container: any) {
+  function setupRenderEffect(instance: any, initialVNode, container: any, anchor) {
 
     /**
      * 这里的流程是进行 Element 的渲染 
@@ -665,7 +679,7 @@ export function createRenderer(options) { // 接收 options 参数
 
         // 这里赋值 instance, 也就是父级组件
         // 初始化 -> n1 为 null
-        patch(null, subTree, container, instance)
+        patch(null, subTree, container, instance, anchor)
         // patch()再去判断，-> subTree 的类型 -> 可能是 组件类型 或者 Element类型 -> 一直递归进行下去
 
 
@@ -702,7 +716,7 @@ export function createRenderer(options) { // 接收 options 参数
 
         // 实现 patch() 的更新逻辑 
         // 添加 n1 n2;  老的虚拟节点 & 新的虚拟节点
-        patch(prevSubTree, subTree, container, instance)
+        patch(prevSubTree, subTree, container, instance, anchor)
       }
 
 
