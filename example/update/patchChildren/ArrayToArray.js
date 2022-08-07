@@ -149,10 +149,10 @@ import { h, ref } from "../../../lib/guide-mini-vue.esm.js"
 
 
 // 4. 右侧一样， 新的比老的长
-const prevChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-];
+// const prevChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+// ];
 
 /**
  * Array1: A B
@@ -167,12 +167,12 @@ const prevChildren = [
  * 这样创建节点时基于锚点 A，在A前面插入 D 节点 ->  在A前面插入 C 节点
  */
 
-const nextChildren = [
-  h("p", { key: "C" }, "C"),
-  h("p", { key: "D" }, "D"),
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-];
+// const nextChildren = [
+//   h("p", { key: "C" }, "C"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+// ];
 /**
  *  2. 右侧一样， 新的比老的长
  *  - Array1: A B
@@ -286,6 +286,72 @@ const nextChildren = [
 
 
 
+
+
+
+
+
+
+// 两个Array 中间 进行对比 
+/**
+ * 双端对比中， 最复杂的中间元素的对比，  也是 双端对比的最核心部分
+ * 
+ * 中间元素乱序的几种情况
+ * 
+ * Array1:  A B C Y E F G
+ * Array2:  A B E D C F G
+ * 
+ * 中间乱序： C Y E  -> E D C 
+ * 
+ * 1. 创建新的 D  -> 老的节点中不存在， 新的节点中存在
+ * 2. 删除老的节点中 Y  ->  在老节点的里面存在， 新节点里面不存在
+ * 3. 移动 C E  ->  节点存在于新的和老的节点里， 但是位置发生改变了
+ */
+
+
+
+const prevChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C", id: "c-prev" }, "C"),
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+
+];
+
+const nextChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "E" }, "E"),  // 增加了E节点 & 删除 D 节点
+  h("p", { key: "C", id: "c-next" }, "C"),  // props不同
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+];
+
+// 1. 删除Array2 中的节点 D  -> 老节点中存在， 新节点中不存在
+/**
+ * Array1:  A B C D F G
+ * Array2:  A B E C F G
+ * 
+ * 
+ * 
+ * 在Array1 和 Array2 已经进行过双端对比，得到中间节点的不同， 乱序的节点
+ *    - C  D 
+ *    - E  C
+ *    - 删除 D  并且创建 E
+ * 
+ * 实现思路：找到中间乱序的节点， 进行遍历一遍 -> 在新Array2中创建映射表，遍历老Array1, 根据映射表，删除映射表的节点 -> D 节点
+ *         - 还有一种遍历方法，也就是通过 key 查找节点。 -> 新节点key 是否在老节点 key 里面 
+ * 
+ * 1. 经过左侧与右侧的对比，得到中间节点的不同， 乱序的节点
+ *    - 此时的指针为 i = 2 | e1 = 3 | e2 = 3
+ * 2. 创建 基于新Array2映射表, key -> value, K 就是节点的key, value 为节点的索引值 
+ * 3. 老节点遍历，根据key 查找对应的映射表, 如果没有对应上，就删除老Array1中 节点-> D 节点
+ *     - 如果查找到对应的 映射表，调用 patch() 进行对比，可以 props | children不同需要进行修改 
+ */
+
+
 export default {
   name: "ArrayToArray",
   setup() {
@@ -304,19 +370,3 @@ export default {
   }
 };
 
-
-
-/**
- * 双端对比中， 最复杂的中间元素的对比，  也是 双端对比的最核心部分
- * 
- * 中间元素乱序的几种情况
- * 
- * Array1:  A B C Y E F G
- * Array2:  A B E D C F G
- * 
- * 中间乱序： C Y E  -> E D C 
- * 
- * 1. 创建新的 D  -> 老的节点中不存在， 新的节点中存在
- * 2. 删除老的节点中 Y  ->  在老节点的里面存在， 新节点里面不存在
- * 3. 移动 C E  ->  节点存在于新的和老的节点里， 但是位置发生改变了
- */

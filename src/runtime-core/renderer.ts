@@ -467,7 +467,94 @@ export function createRenderer(options) { // 接收 options 参数
         i++
       }
     } else {
-      // 乱序的部分， 中间的部分
+      // 乱序的部分， 中间的部分 ， 中间对比的部分 
+
+      // 1. 删除Array2 中的节点 D  -> 老节点中存在， 新节点中不存在
+      /**
+       * Array1:  A B C D F G
+       * Array2:  A B E C F G
+       * 
+       * -> 实现逻辑： 删除 D， 修改C的props
+       * 
+       * 在Array1 和 Array2 已经进行过双端对比，得到中间节点的不同， 乱序的节点
+       *    - C  D 
+       *    - E  C
+       *    - 删除 D  并且创建 E
+       * 
+       * 实现思路：找到中间乱序的节点， 进行遍历一遍 -> 在新Array2中创建映射表，遍历老Array1, 根据映射表，删除映射表的节点 -> D 节点
+       *         - 还有一种遍历方法，也就是通过 key 查找节点。 -> 新节点key 是否在老节点 key 里面 
+       * 
+       * 1. 经过左侧与右侧的对比，得到中间节点的不同， 乱序的节点
+       *    - 此时的指针为 i = 2 | e1 = 3 | e2 = 3
+       * 2. 创建 基于新Array2映射表, key -> value, K 就是节点的key, value 为节点的索引值 
+       * 3. 老节点遍历，根据key 查找对应的映射表, 如果没有对应上，就删除老Array1中 节点-> D 节点
+       *     - 如果查找到对应的 映射表，调用 patch() 进行对比，可以 props | children不同需要进行修改 
+       */
+
+      // 1. 需要遍历 Array1 & Array2 中间的乱序部分 
+      // 创建指针 
+      let s1 = i  // 老节点数组 Array1 的开始遍历位置
+      let s2 = i  // 新节点数组 Array2 的开始遍历位置
+
+
+      // 2. 基于新Array2 创建映射表
+      const keyToNewIndexMap = new Map()
+      for (let i = s2; i <= e2; i++) {
+        // 获取到当前节点
+        const nextChild = c2[i]
+        // 添加到映射表 ,  key -> value, K 就是当前节点的key, value 为节点的索引值
+        keyToNewIndexMap.set(nextChild.key, i)
+      }
+
+
+      // 3. 遍历老节点Array1
+      for (let i = s1; i <= e1; i++) {
+        // 取到当前的节点
+        const prevChild = c1[i] // 老Array1 的节点
+
+        // 定义变量，保存索引值, 新节点所在的位置 
+        let newIndex
+
+        // 判断当Array1 中的 当前节点是否 赋值 key
+        // 有两种情况 null | undefined
+        if (prevChild.key != null) { // 当有key 时，才会去判断是否在映射表中
+
+          // 根据在老Array 真正遍历的节点 key,  查找对应的映射表
+          // 如果能获取到值 -> 新Array2中 一定存在该节点
+          // 如果没有 -> 说明该节点在新Array2中不存在，需要删除
+          newIndex = keyToNewIndexMap.get(prevChild.key)  // 返回值是索引， 新节点所在的位置
+          // 当 newIndex 没有映射到值时，为 undefined  
+
+        } else {
+          // 如果 当前Array1 取出的节点 没有 key
+
+          // 遍历 新Array2 中的节点， 
+          // 如果不相同，删除老节点
+          for (let j = s2; j <= e2; j++) {
+            // 判断 新老节点是否相同 
+            if (isSomeVNodeType(prevChild, c2[j])) {
+              // 如果相同，说明该节点在新Array2中存在，不需要删除
+
+              // 进行 newIndex 赋值 -> 新节点所在的位置
+              newIndex = j
+              // 查找到节点， 就没有必要遍历了
+              break
+            }
+          }
+        }
+
+
+        // 判断 newIndex 这个值
+        // 如果没有取到值 -> undefined，说明该节点在新Array2中不存在，需要删除
+        if (newIndex === undefined) {
+          // 删除老节点
+          hostRemove(prevChild.el)
+        } else {
+          // 如果 newIndex 具有值 -> 新节点所在的位置
+          // 调用patch() 进行更深度的对比 -> 进行判断 props | children 这些属性 
+          patch(prevChild, c2[newIndex], container, parentComponent, null)
+        }
+      }
     }
 
 
