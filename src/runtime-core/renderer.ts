@@ -409,11 +409,11 @@ export function createRenderer(options) { // 接收 options 参数
 
         // 声明一个锚点， 锚点等于 A 节点的el，把创建的节点，添加到A节点之前
         // 声明一个位置 nextPos 
-        const nextPos = i + 1
+        const nextPos = e2 + 1  // 修改 bug 改为 e2 + 1 获取锚点
 
         // 因为这里的逻辑时 左侧对比 & 右侧对比 新节点比老节点长。 的逻辑都会执行这里 
         // 所以需要设置一个锚点，根据锚点判断，是添加在 头部 还是 尾部
-        const anchor = i + 1 < l2 ? c2[nextPos].el : null
+        const anchor = nextPos < l2 ? c2[nextPos].el : null
         // 分析： 判断 i + 1 < c2.length  新节点的元素个数, 如果小于那就是进行了左侧对比， 所以赋值锚点为 null ， 表示添加到最后的尾部位置 
         //  如果 i + 1 没有小于 新节点的元素个数， 说明进行的是右侧对比，赋值锚点为 c2[i+1].el， 新节点的第二个位置的元素 ： A ，就是锚点, 
 

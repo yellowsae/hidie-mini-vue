@@ -149,17 +149,30 @@ import { h, ref } from "../../../lib/guide-mini-vue.esm.js"
 
 
 // 4. 右侧一样， 新的比老的长
-// const prevChildren = [
-//   h("p", { key: "A" }, "A"),
-//   h("p", { key: "B" }, "B"),
-// ];
+const prevChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+];
 
-// const nextChildren = [
-//   h("p", { key: "C" }, "C"),
-//   h("p", { key: "D" }, "D"),
-//   h("p", { key: "A" }, "A"),
-//   h("p", { key: "B" }, "B"),
-// ];
+/**
+ * Array1: A B
+ * Array2: D C A B
+ * 
+ * 这里出现 bug, 当新的 Array 创建多个节点时，C  D , 会出现问题，它会添加到最后，而不是头部
+ * - 分析： 当进行右侧对比后： i = 0 | e1 = -1 | e2 = 1 , 然后进入到创建的逻辑。
+ *         但是在设置 nextPos = i + 1， 指定到C节点，而此时C节点还没有创建， 所以 nextPos = null
+ * 
+ * - 解决： 应该获取锚点是是基于 e2 + 1 -> 取到 A 节点
+ * 
+ * 这样创建节点时基于锚点 A，在A前面插入 D 节点 ->  在A前面插入 C 节点
+ */
+
+const nextChildren = [
+  h("p", { key: "C" }, "C"),
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+];
 /**
  *  2. 右侧一样， 新的比老的长
  *  - Array1: A B
@@ -221,17 +234,17 @@ import { h, ref } from "../../../lib/guide-mini-vue.esm.js"
 
 
 // 6. 基于右侧对比 
-const prevChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "C" }, "C"),
+// const prevChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C" }, "C"),
 
-];
+// ];
 
-const nextChildren = [
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "C" }, "C"),
-];
+// const nextChildren = [
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C" }, "C"),
+// ];
 /**
  * 4. Array1 比 Array2 长
  *  - Array1: A B C
