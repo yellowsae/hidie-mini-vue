@@ -491,10 +491,27 @@ export function createRenderer(options) { // 接收 options 参数
        *     - 如果查找到对应的 映射表，调用 patch() 进行对比，可以 props | children不同需要进行修改 
        */
 
+      // 2. 优化删除逻辑
+      /**
+       * Array1:  A B C E D F G
+       * Array2:  A B E C F G
+       * 
+       * 优化的点： 当遍历Array1, 对应映射表时，如果映射表中的项已经映射完了，就不再进行循环映射了，直接删除Array1 之后的节点
+       * 实现：
+       * 1. 记录新Array 变化的数量， 当每次映射时候，定义一个变量记录下来
+       * 2. 判断记录的数量 超过 新节点的数量时，Array1 后面的所有节点都进行移除
+       * 
+       */
+
       // 1. 需要遍历 Array1 & Array2 中间的乱序部分 
       // 创建指针 
       let s1 = i  // 老节点数组 Array1 的开始遍历位置
       let s2 = i  // 新节点数组 Array2 的开始遍历位置
+
+      // 定义一个变量，记录新节点的数量
+      const toBePatched = e2 - s2 + 1
+      // 定义一个变量，记录当前已经映射过的数量
+      let patched = 0
 
 
       // 2. 基于新Array2 创建映射表
@@ -503,6 +520,14 @@ export function createRenderer(options) { // 接收 options 参数
         // 获取到当前节点
         const nextChild = c2[i]
         // 添加到映射表 ,  key -> value, K 就是当前节点的key, value 为节点的索引值
+        // 重要的点：节点的key 的应用，面试经常问到 -> 
+        // 答：因为在源码中， diff 算法会对 更新后的Element节点，建立一个 key -> value 的一个映射关系， 映射表。 
+        // 当老节点与新节点有不同时，老节点通过这个key 能够快速找到 与 新节点所在的位置，进行更新逻辑
+        // diff 算法中节点写了 key ， 对比算法复杂度 为 O(1)
+        // 
+        // 如果没有写 key ， 对比算法的复杂度为  O(n) -> 
+        //   - 没有 key , 需要遍历 新节点 和 老节点，判断在那个位置上是否相同， 如果相同，就不需要更新了， 
+        //   - 如果不相同，就需要更新操作
         keyToNewIndexMap.set(nextChild.key, i)
       }
 
@@ -511,6 +536,16 @@ export function createRenderer(options) { // 接收 options 参数
       for (let i = s1; i <= e1; i++) {
         // 取到当前的节点
         const prevChild = c1[i] // 老Array1 的节点
+
+        // 这里每次都需要去检查 patched 是否超过 toBePatched，如果超过，就不再进行循环了
+        // patched 映射的次数 >= toBePatched 新节点的数量
+        if (patched >= toBePatched) {
+          // 直接删除掉 Array1 之后的节点
+          hostRemove(prevChild.el)
+          continue
+        }
+
+
 
         // 定义变量，保存索引值, 新节点所在的位置 
         let newIndex
@@ -553,6 +588,9 @@ export function createRenderer(options) { // 接收 options 参数
           // 如果 newIndex 具有值 -> 新节点所在的位置
           // 调用patch() 进行更深度的对比 -> 进行判断 props | children 这些属性 
           patch(prevChild, c2[newIndex], container, parentComponent, null)
+
+          // 这里表示已经处理完一个相同节点了，对patched++;
+          patched++
         }
       }
     }

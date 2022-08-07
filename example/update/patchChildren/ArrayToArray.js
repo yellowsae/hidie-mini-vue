@@ -310,24 +310,30 @@ import { h, ref } from "../../../lib/guide-mini-vue.esm.js"
 
 
 
-const prevChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "C", id: "c-prev" }, "C"),
-  h("p", { key: "D" }, "D"),
-  h("p", { key: "F" }, "F"),
-  h("p", { key: "G" }, "G"),
 
-];
 
-const nextChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "E" }, "E"),  // 增加了E节点 & 删除 D 节点
-  h("p", { key: "C", id: "c-next" }, "C"),  // props不同
-  h("p", { key: "F" }, "F"),
-  h("p", { key: "G" }, "G"),
-];
+
+
+
+
+// const prevChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C", id: "c-prev" }, "C"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+
+// ];
+
+// const nextChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "E" }, "E"),  // 增加了E节点 & 删除 D 节点
+//   h("p", { key: "C", id: "c-next" }, "C"),  // props不同
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
 
 // 1. 删除Array2 中的节点 D  -> 老节点中存在， 新节点中不存在
 /**
@@ -351,6 +357,41 @@ const nextChildren = [
  *     - 如果查找到对应的 映射表，调用 patch() 进行对比，可以 props | children不同需要进行修改 
  */
 
+
+
+
+
+const prevChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C", id: "c-prev" }, "C"),
+  // 新增了 E 节点
+  h("p", { key: "E" }, "E"),
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+
+];
+
+const nextChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "E" }, "E"),  // 增加了E节点 & 删除 D 节点
+  h("p", { key: "C", id: "c-next" }, "C"),  // props不同
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+];
+// 2. 优化删除逻辑
+/**
+ * Array1:  A B C E D F G
+ * Array2:  A B E C F G
+ * 
+ * 优化的点： 当遍历Array1, 对应映射表时，如果映射表中的项已经映射完了，就不再进行循环映射了，直接删除Array1 之后的节点
+ * 实现：
+ * 1. 记录新Array 变化的数量， 当每次映射时候，定义一个变量记录下来
+ * 2. 判断记录的数量 超过 新节点的数量时，Array1 后面的所有节点都进行移除
+ * 
+ */
 
 export default {
   name: "ArrayToArray",
