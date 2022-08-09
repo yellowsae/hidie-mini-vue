@@ -643,8 +643,10 @@ export function createRenderer(options) { // 接收 options 参数
         const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null
 
 
-        // 判断移动 
-        if (moved) {
+        // 创建节点逻辑
+        if (newIndexToOldIndexMap[i] === 0) {
+          patch(null, nextChild, container, parentComponent, anchor)
+        } else if (moved) {
           if (j < 0 || i !== increasingNewIndexSequence[j]) {
             // 进行移动位置 
             // console.log("移动位置")
