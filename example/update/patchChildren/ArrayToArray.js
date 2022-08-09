@@ -361,26 +361,26 @@ import { h, ref } from "../../../lib/guide-mini-vue.esm.js"
 
 
 
-const prevChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "C", id: "c-prev" }, "C"),
-  // 新增了 E 节点
-  h("p", { key: "E" }, "E"),
-  h("p", { key: "D" }, "D"),
-  h("p", { key: "F" }, "F"),
-  h("p", { key: "G" }, "G"),
+// const prevChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "C", id: "c-prev" }, "C"),
+//   // 新增了 E 节点
+//   h("p", { key: "E" }, "E"),
+//   h("p", { key: "D" }, "D"),
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
 
-];
+// ];
 
-const nextChildren = [
-  h("p", { key: "A" }, "A"),
-  h("p", { key: "B" }, "B"),
-  h("p", { key: "E" }, "E"),  // 增加了E节点 & 删除 D 节点
-  h("p", { key: "C", id: "c-next" }, "C"),  // props不同
-  h("p", { key: "F" }, "F"),
-  h("p", { key: "G" }, "G"),
-];
+// const nextChildren = [
+//   h("p", { key: "A" }, "A"),
+//   h("p", { key: "B" }, "B"),
+//   h("p", { key: "E" }, "E"),  // 增加了E节点 & 删除 D 节点
+//   h("p", { key: "C", id: "c-next" }, "C"),  // props不同
+//   h("p", { key: "F" }, "F"),
+//   h("p", { key: "G" }, "G"),
+// ];
 // 2. 优化删除逻辑
 /**
  * Array1:  A B C E D F G
@@ -392,6 +392,33 @@ const nextChildren = [
  * 2. 判断记录的数量 超过 新节点的数量时，Array1 后面的所有节点都进行移除
  * 
  */
+
+
+
+
+// 中间节点 - 移动 - 节点存在于新的和老的里面，但是位置变了 
+// a b (c d e) f g 
+// a b (e c d) f g
+// 最长递增子序列 [1, 2] -> c d
+
+const prevChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "C" }, "C"),
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "E" }, "E"),
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+];
+const nextChildren = [
+  h("p", { key: "A" }, "A"),
+  h("p", { key: "B" }, "B"),
+  h("p", { key: "E" }, "E"),
+  h("p", { key: "C" }, "C"),
+  h("p", { key: "D" }, "D"),
+  h("p", { key: "F" }, "F"),
+  h("p", { key: "G" }, "G"),
+];
 
 export default {
   name: "ArrayToArray",
