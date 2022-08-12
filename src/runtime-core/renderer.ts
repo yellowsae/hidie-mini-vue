@@ -2,6 +2,7 @@ import { effect } from "../reactivity/effect"
 import { EMPTY_OBJ, isObject } from "../shared/index"
 import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
+import { shouldUpdateComponent } from "./componentUpdateUtils"
 import { createAppApi } from "./createApp"
 import { Fragment, Text } from "./vnode"
 
@@ -845,16 +846,72 @@ export function createRenderer(options) { // 接收 options 参数
 
   // 实现组件初始化的总体函数
   function processComponent(n1, n2, container: any, parentComponent, anchor) {
-    // 1. 挂载组件
-    // 使用 mountComponent 函数 挂载组件
-    mountComponent(n2, container, parentComponent, anchor)
+
+    // 判断组件 是否为 更新 | 初始化 
+    if (!n1) {
+      // 如果n1 没有值 -> 初始化
+      // 1. 挂载组件
+      // 使用 mountComponent 函数 挂载组件
+      mountComponent(n2, container, parentComponent, anchor)
+    } else {
+      // 如果n1 有值 -> 更新
+      updateComponent(n1, n2)
+    }
+
   }
 
+  // 更新组件的逻辑
+  function updateComponent(n1, n2) {
+    /**
+     * 更新组件的逻辑： 重新调用当前组件的 render函数， 重新生成虚拟节点，再进行patch 
+     * -> 更新组件的props , 调用组件的render()
+     * 
+     * 1. 当调用 响应式数据时，会重新执行 effect 函数，而 effect 函数会具有一个返回值
+     * 2. effect 函数的返回值,可以再次effect 收集的依赖，进行调用 -> 赋值为 instance.update
+     * 3. 在更新组件时， 调用 instance.update 就行
+     * 4. 进行组件内容的更新 props 
+     *  - 实现逻辑： 在更新逻辑需要更新之后的虚拟节点，也就是 n2， 使用 next 保存 n2 的虚拟节点
+     *  - 1. 赋值 instance.next ， 并在 component 中初始化 next 
+     *  - 2. 在更新的逻辑中 取出 next 更新的虚拟节点，和 vnode 当前的组件虚拟节点
+     *  - 3. 把el 进行更新 next.el = n1.el
+     *  - 4. 更新props
+     *      - 更新虚拟节点 ： 老的虚拟节点 = 更新后的虚拟节点 next
+     *      - 清空 instance.next
+     *      - 更新 props : instance.props = next.props
+     * 
+     * 5. 优化: 判断组件是否更新 
+     *   - 实现判断是否更新的方法，主要就是判断 props 是否相等
+     *   - 1. 封装 shouldUpdateComponent() 函数 传入 n1 n2
+     *   - 2. 取出 n1 n2 的 props , 然后 循环对比 key 是否相同 
+     */
+
+    // 拿到instance 
+    // 把 instance 挂载到当前的虚拟节点上 VNode, 在mountComponent() 初始化组件时，进行 component -> instance 的赋值
+
+    // 把老的组件 的实例 赋值给 n2 的实例
+    const instance = (n2.component = n1.component)
+
+    // 实现判断是否更新的方法，主要就是判断 props 是否相等
+    if (shouldUpdateComponent(n1, n2)) {
+
+      // 这里赋值 next ， 代表下次要更新的虚拟节点
+      instance.next = n2
+
+      instance.update()
+    } else {
+      // 如果不需要更新时， 重置虚拟节点 
+      // 赋值 n2.el
+      n2.el = n1.el
+      // 把更新后的虚拟节点 赋值给 vnode 
+      instance.vnode = n2
+    }
+  }
 
   // 挂载组件mountComponent, 初始化组件实例
   function mountComponent(initialVNode: any, container, parentComponent, anchor) {
     // 1. 通过 vnode 创建一个组件的实例对象 ->  instance 
-    const instance = createComponentInstance(initialVNode, parentComponent)
+    // 给 component 当前组件实例赋值 
+    const instance = (initialVNode.component = createComponentInstance(initialVNode, parentComponent))
 
     // 2. setupComponent() 初始化
     // 2.1 解析处理组件的其他内置属性 比如： props , slots 这些 
@@ -888,7 +945,10 @@ export function createRenderer(options) { // 接收 options 参数
      */
 
     // 使用 effect监视模板中响应式数据的变化 
-    effect(() => {
+
+    // 拿到 effect 的返回值 runner函数, 写为 instance.update 方法 
+    instance.update = effect(() => {
+      // effect(() => {
       // 然后实现依赖收集 & 触发依赖的实现
       // 把 渲染的逻辑 写在这里， 收集依赖
 
@@ -934,6 +994,17 @@ export function createRenderer(options) { // 接收 options 参数
         // 更新逻辑 
         console.log("update")
 
+        // 组件的 props 更新
+        // 取出 next & vnode 
+        const { next, vnode } = instance
+        // 判断
+        if (next) {
+          // 1. 把el 进行更新 
+          next.el = vnode.el
+          // 2. 更新 props 
+          updateComponentPreRender(instance, next)
+        }
+
         // 实现： 在初始化时 instance 中用一个变量 保存 subTree 的值
         // 在更新时候，获取到 上一个 subTree 
 
@@ -975,6 +1046,17 @@ export function createRenderer(options) { // 接收 options 参数
     // 的到之前 createApp 
     createApp: createAppApi(render)
   }
+}
+
+// 更新 Props
+function updateComponentPreRender(instance, nextVNode) {
+  // 更新 虚拟节点 
+  instance.vnode = nextVNode
+  // 清空 nextVNode
+  instance.next = null
+
+  // 更新 props 
+  instance.props = nextVNode.props
 }
 
 

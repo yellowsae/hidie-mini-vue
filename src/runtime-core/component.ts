@@ -39,7 +39,13 @@ export function createComponentInstance(vnode, parent) {
     // 定义isMounted 判断 Element 是否是初始化 
     isMounted: false,
     // 定义 subTree 存储上一次更新的 VNode
-    subTree: {}
+    subTree: {},
+
+    // component 当前组件的实例 instance， 挂载到component上
+    component: null,  // 初始为null
+
+    // next -> 更新之后的虚拟节点 -> 初始化
+    next: null
   }
 
   // 声明 emit 方法， 挂载到 component.emit 上

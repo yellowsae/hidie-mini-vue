@@ -3,7 +3,8 @@ import { hasOwn } from "../shared"
 // 声明一个对象，根据key，判断是否有属性，返回 instance 上的值
 const publicPropertiesMap = {
   $el: (instance) => instance.vnode.el,
-  $slots: (instance) => instance.slots
+  $slots: (instance) => instance.slots,
+  $props: (instance) => instance.props
 }
 
 // 这里的 instance ， 可以通过 ctx 进行传值 
