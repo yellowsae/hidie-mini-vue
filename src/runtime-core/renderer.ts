@@ -4,6 +4,7 @@ import { ShapeFlags } from "../shared/ShapeFlags"
 import { createComponentInstance, setupComponent } from "./component"
 import { shouldUpdateComponent } from "./componentUpdateUtils"
 import { createAppApi } from "./createApp"
+import { queueJobs } from "./scheduler"
 import { Fragment, Text } from "./vnode"
 
 
@@ -1031,6 +1032,20 @@ export function createRenderer(options) { // 接收 options 参数
       }
 
 
+      /**
+       * 代码实现 
+       *  render.ts 中
+       *  要把更新视图的逻辑添加到队列中， 所以更新逻辑不能立即执行 
+       */
+
+    }, {
+      scheduler() {
+        console.log("update schedule")
+        // 调用 effect 返回出来的 fn -> instance.update
+        // 所以这里 job 就是 instance.update,  当前组件发生变化的逻辑
+        // 收集 job 的逻辑 queueJobs()
+        queueJobs(instance.update)
+      }
     })
   }
 

@@ -12,6 +12,11 @@ export { getCurrentInstance } from "./component"
 export { inject, provide } from "./apiInject"
 // 导出自定义渲染器
 export { createRenderer } from "./renderer"
+export { nextTick } from "./scheduler"
+
+
+
+
 /**
  * 初始化 runtime-core 的流程 和 初始化 组件 的流程总结
  * 
