@@ -588,12 +588,13 @@ export function createRenderer(options) { // 接收 options 参数
 
           // 遍历 新Array2 中的节点， 
           // 如果不相同，删除老节点
+          // 加上 j <= e2
           for (let j = s2; j <= e2; j++) {
             // 判断 新老节点是否相同 
             if (isSomeVNodeType(prevChild, c2[j])) {
               // 如果相同，说明该节点在新Array2中存在，不需要删除
 
-              // 进行 newIndex 赋值 -> 新节点所在的位置
+              // 进行   newIndex 赋值 -> 新节点所在的位置
               newIndex = j
               // 查找到节点， 就没有必要遍历了
               break
