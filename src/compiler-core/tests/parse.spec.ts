@@ -1,3 +1,4 @@
+import { NodeTypes } from "../src/ast"
 import { baseParse } from "../src/parse"
 
 
@@ -20,11 +21,13 @@ describe('Parse', () => {
       // 其中 ast 包含一个 children 的 Array ， children[0] 为  {}
       expect(ast.children[0]).toStrictEqual({
         // 类型
-        type: "interpolation",
+        // 替换为枚举
+        type: NodeTypes.INTERPOLATION,
         // 内容
         content: {
           // message 的类型
-          type: "simple_expression",
+          // 替换为枚举
+          type: NodeTypes.STATEFUL_COMPONENT,
           // content 内容就是 message
           content: "message"
         }
