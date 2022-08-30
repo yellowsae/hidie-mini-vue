@@ -4,6 +4,11 @@
 import { NodeTypes } from "./ast"
 
 
+const enum TagType {
+  Start,
+  End
+}
+
 // 导出 baseParse 函数 - 并且接收 content 模板的字符串 {{message}} 
 export function baseParse(content: string) {
 
@@ -28,11 +33,23 @@ function parseChildren(context) {
   const nodes: any = []
 
   let node;
+  // 重构 - 简化 context.source
+  let s = context.source
   // 增加 判断，当 context.source 是以 {{ 开头 时在进行插值的替换
-  if (context.source.startsWith("{{")) {
+  if (s.startsWith("{{")) {
     // 2. 调用 parseInterpolation() 返回出来的节点
     // 传入 context
     node = parseInterpolation(context)
+  } else if (s[0] === '<') {
+    // 判断 Element 并且解析 Element 的逻辑 
+
+    // 判断第二个字符 是否是 a-z
+    if (/[a-z]/i.test(s[1])) {
+      // console.log("parse Element") // 命中 
+      // 解析 Element 的逻辑
+      // 把返回值放到 node 中
+      node = parseElement(context)
+    }
   }
 
   // 把生成的节点添加到 节点树 中 
@@ -40,6 +57,47 @@ function parseChildren(context) {
 
   // 最后返回 nodes -> 交给 createRoot 
   return nodes
+}
+
+
+// 解析 Element 的逻辑
+function parseElement(context: any) {
+  // 抽离解析 Element 的逻辑
+  // 添加解析的类型
+  const element = parseTag(context, TagType.Start)
+
+  parseTag(context, TagType.End)
+  // console.log(context.source)
+
+
+  return element
+}
+
+
+// 抽离 解析 tag 的逻辑 
+function parseTag(context, type: TagType) {
+  // 1. 解析 div   tag 
+  // 通过正则 匹配 div
+  const match: any = /^<\/?([a-zA-Z][^\s/>]*)/.exec(context.source)
+  // console.log(match)
+  const tag = match[1]
+
+
+  // 2. 删除处理完成的代码 
+  advanceBy(context, match[0].length)
+
+  advanceBy(context, 1)
+
+
+  // 如果类型 === 结束标签 直接返回 
+  if (type === TagType.End) return
+
+  // 伪实现
+  return {
+    type: NodeTypes.ELEMENT,
+    // 替换
+    tag
+  }
 }
 
 
