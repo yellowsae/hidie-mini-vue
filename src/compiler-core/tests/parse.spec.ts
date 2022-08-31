@@ -47,4 +47,21 @@ describe('Parse', () => {
       })
     })
   })
+
+
+
+  // 解析 Text 的测试
+  describe("Text", () => {
+
+    it('simple text', () => {
+      const ast = baseParse("some text")
+      // 解析 element
+      expect(ast.children[0]).toStrictEqual({
+        // 类型
+        type: NodeTypes.TEXT,
+        // 解析出来的内容
+        content: 'some text',
+      })
+    })
+  })
 })

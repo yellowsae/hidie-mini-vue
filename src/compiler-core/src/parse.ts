@@ -52,11 +52,38 @@ function parseChildren(context) {
     }
   }
 
+
+  // 默认 解析 Text , 当没有命中 Element 和 插值 时，解析 Text
+  if (!node) { // 如果 node 没有值时，解析 Text
+    node = parseText(context)
+  }
+
   // 把生成的节点添加到 节点树 中 
   nodes.push(node)
 
   // 最后返回 nodes -> 交给 createRoot 
   return nodes
+}
+
+
+// 解析 Text 的逻辑 
+function parseText(context) {
+  // 1. 获取 content 内容 
+  // 值就是 context.source
+  const content = context.source.slice(0, context.source.length);
+  // console.log(content);
+
+  // 2. 删除 解析后的 text 
+  advanceBy(context, content.length);
+  // console.log(context.source)
+
+  // 伪实现 
+  return {
+    // 类型
+    type: NodeTypes.TEXT,
+    // 解析出来的内容
+    content,
+  }
 }
 
 
@@ -102,7 +129,7 @@ function parseTag(context, type: TagType) {
 }
 
 
-// 4，抽离解析 节点树的内容 
+// 4，抽离解析 插值 {{}} 的内容 
 function parseInterpolation(context) {
 
 

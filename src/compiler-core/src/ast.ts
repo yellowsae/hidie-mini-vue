@@ -6,5 +6,6 @@
 export const enum NodeTypes {
   INTERPOLATION,
   STATEFUL_COMPONENT,
-  ELEMENT
+  ELEMENT,
+  TEXT
 }
