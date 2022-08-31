@@ -62,14 +62,16 @@ function parseChildren(context) {
 
 // 解析 Element 的逻辑
 function parseElement(context: any) {
+  // console.log(context)   // 传入 { source: '<div></div>' }
   // 抽离解析 Element 的逻辑
   // 添加解析的类型
   const element = parseTag(context, TagType.Start)
 
+  // 二次解析 Element 的逻辑 
   parseTag(context, TagType.End)
-  // console.log(context.source)
+  // console.log(context.source)  // 删除全部标签代码 
 
-
+  // 返回解析好的 Element 对象
   return element
 }
 
@@ -79,7 +81,8 @@ function parseTag(context, type: TagType) {
   // 1. 解析 div   tag 
   // 通过正则 匹配 div
   const match: any = /^<\/?([a-zA-Z][^\s/>]*)/.exec(context.source)
-  // console.log(match)
+
+  // console.log(match)  // 1. <div  2. </div
   const tag = match[1]
 
 
@@ -88,11 +91,9 @@ function parseTag(context, type: TagType) {
 
   advanceBy(context, 1)
 
-
   // 如果类型 === 结束标签 直接返回 
   if (type === TagType.End) return
 
-  // 伪实现
   return {
     type: NodeTypes.ELEMENT,
     // 替换
