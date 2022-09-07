@@ -19,13 +19,14 @@ export function baseParse(content: string) {
   // 2. 把根节点这个概念抽离为函数 
   // parseChildren 传入 context
   // 初始， 传入 ""
-  return createRoot(parseChildren(context, ""))
+  // 改为 [] 模拟栈，把标签传入进去 
+  return createRoot(parseChildren(context, []))
 }
 
 
 
 // 3. 继续抽离 children 
-function parseChildren(context, parseTag) {  // 传入 parseTag 解析好的标签
+function parseChildren(context, ancestors) {  // 传入 parseTag 解析好的标签
   // 接收 context -> 后续处理 基于 context 生成 节点树
   // 功能： 返回一个数组 ，  [children]
 
@@ -40,7 +41,7 @@ function parseChildren(context, parseTag) {  // 传入 parseTag 解析好的标�
   // 当 遇到 </div> 结束标签时候 停止循环
   // 使用 isEnd() 封装
   // 传入 parseTag 解析好的标签
-  while (!isEnd(context, parseTag)) {
+  while (!isEnd(context, ancestors)) {
     let node;
     // 重构 - 简化 context.source
     let s = context.source
@@ -57,7 +58,7 @@ function parseChildren(context, parseTag) {  // 传入 parseTag 解析好的标�
         // console.log("parse Element") // 命中 
         // 解析 Element 的逻辑
         // 把返回值放到 node 中
-        node = parseElement(context)
+        node = parseElement(context, ancestors)
       }
     }
 
@@ -76,9 +77,24 @@ function parseChildren(context, parseTag) {  // 传入 parseTag 解析好的标�
 }
 
 // 判断是否循环的函数
-function isEnd(context, parseTag) {
+function isEnd(context, ancestors) {
   // 2. 当 遇到 </div> 结束标签时候 停止循环
   let s = context.source
+
+  // 使用 ancestors 栈中的数据 
+  // 当解析到 结束标签时 
+  if (s.startsWith("</")) {
+    // 与 ancestors 中的数据进行对比 
+    for (let i = 0; i < ancestors.length; i++) {
+      const tag = ancestors[i].tag
+
+      // 截取出 div  对比  tag  
+      if (s.slice(2, 2 + tag.length) === tag) {
+        return true
+      }
+    }
+  }
+
 
   /** 
    * 因为这里是写死的标签 </div> 
@@ -88,11 +104,11 @@ function isEnd(context, parseTag) {
   */
   //  改为 parseTag
   // 当 parseTag 为空时不用管
-  if (parseTag && s.startsWith(`</${parseTag}>`)) {
-    // if (s.startsWith("</div>")) {
-    // 返回 true
-    return true
-  }
+  // if (parseTag && s.startsWith(`</${parseTag}>`)) {
+  //   // if (s.startsWith("</div>")) {
+  //   // 返回 true
+  //   return true
+  // }
   // 1. 当 source 有值时候，返回 false
   return !context.source
 
@@ -148,22 +164,39 @@ function parseText(context) {
 
 
 // 解析 Element 的逻辑
-function parseElement(context: any) {
+function parseElement(context: any, ancestors) {
   // console.log(context)   // 传入 { source: '<div></div>' }
   // 抽离解析 Element 的逻辑
   // 添加解析的类型
   const element: any = parseTag(context, TagType.Start)
 
 
+  // 收集 tag 到 栈 ancestors 中
+  ancestors.push(element)
+
   // 1. element 具有 children ，因为 element 可能是嵌套的
   // 所以 这里 递归调用 parseChildren 
   // 传入 解析好的 element.tag 
-  element.children = parseChildren(context, element.tag)
+  element.children = parseChildren(context, ancestors)
+
+  // 当解析好 tag 后，把栈中 对应的的数据 弹出来 
+  ancestors.pop()
 
 
-  // 二次解析 Element 的逻辑 
-  parseTag(context, TagType.End)
-  // console.log(context.source)  // 删除全部标签代码 
+
+  // 当标签不匹配时，在 parseTag 出错 
+  // 因为 开始标签 和 结束标签 不一致 
+  // console.log("-----", element.tag, context.source) // ----- span </div>
+  // 增加判断，如果匹配上标签 才执行 parseTag 
+  if (context.source.slice(2, 2 + element.tag.length) === element.tag) {
+    // 二次解析 Element 的逻辑 
+    parseTag(context, TagType.End)
+    // console.log(context.source)  // 删除全部标签代码 
+  } else {
+    // 如果标签不匹配 , 抛出错误 
+    throw new Error(`缺少结束标签:${element.tag}`)
+  }
+
 
   // 返回解析好的 Element 对象
   return element

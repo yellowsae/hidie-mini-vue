@@ -128,4 +128,28 @@ describe('Parse', () => {
       ]
     })
   })
+
+
+
+  // 增加测试
+  // 在没有写结束标签时，应该抛出错误 
+
+  /**
+   * 出现问题：会一直循环，不会停止， 死循环 
+   * - 在 isEnd() 中没有判断结束标签 </ 然后结束循环，找不到 span 标签结束标签 所以会一直死循环 
+   * 
+   * 解决：
+   *  1. 使用 [] 栈，在进行 解析 context.source 时，收集标签 
+   *  2. 当解析好 element.children = parseChildren() 的逻辑完后，从 [] 中弹出标签 
+   *  3. 在 isEnd() 时使用 [] 中的数据， 当匹配到结束标签时， 判断[]中的tag 是否存在 和正在解析的标签， 如果有就返回true , 让循环 结束 
+   *  4. 在parseElement 中判断  标签不匹配时，在 parseTag 出错， 增加判断，如果匹配上标签 才执行 parseTag，如果没有匹配上，抛出错误
+   */
+  test('should throw error when lack end tag', () => {
+    // 查看报的什么错 
+    // baseParse("<div><span></div>")
+
+    expect(() => {
+      baseParse("<div><span></div>")
+    }).toThrow("缺少结束标签:span")
+  })
 })
