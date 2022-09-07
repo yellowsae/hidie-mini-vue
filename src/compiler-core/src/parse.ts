@@ -18,13 +18,14 @@ export function baseParse(content: string) {
 
   // 2. 把根节点这个概念抽离为函数 
   // parseChildren 传入 context
-  return createRoot(parseChildren(context))
+  // 初始， 传入 ""
+  return createRoot(parseChildren(context, ""))
 }
 
 
 
 // 3. 继续抽离 children 
-function parseChildren(context) {
+function parseChildren(context, parseTag) {  // 传入 parseTag 解析好的标签
   // 接收 context -> 后续处理 基于 context 生成 节点树
   // 功能： 返回一个数组 ，  [children]
 
@@ -32,46 +33,97 @@ function parseChildren(context) {
   // 1. 定义一个 节点树 -> 也叫 抽象语法树
   const nodes: any = []
 
-  let node;
-  // 重构 - 简化 context.source
-  let s = context.source
-  // 增加 判断，当 context.source 是以 {{ 开头 时在进行插值的替换
-  if (s.startsWith("{{")) {
-    // 2. 调用 parseInterpolation() 返回出来的节点
-    // 传入 context
-    node = parseInterpolation(context)
-  } else if (s[0] === '<') {
-    // 判断 Element 并且解析 Element 的逻辑 
 
-    // 判断第二个字符 是否是 a-z
-    if (/[a-z]/i.test(s[1])) {
-      // console.log("parse Element") // 命中 
-      // 解析 Element 的逻辑
-      // 把返回值放到 node 中
-      node = parseElement(context)
+  // 3. 当解析完 text 后，后面还有内容: {{message}}</div>
+  // 这里定义一个死循环，让它一直去解析后面的内容 
+  // 当 source 没有值时候结束循环
+  // 当 遇到 </div> 结束标签时候 停止循环
+  // 使用 isEnd() 封装
+  // 传入 parseTag 解析好的标签
+  while (!isEnd(context, parseTag)) {
+    let node;
+    // 重构 - 简化 context.source
+    let s = context.source
+    // 增加 判断，当 context.source 是以 {{ 开头 时在进行插值的替换
+    if (s.startsWith("{{")) {
+      // 2. 调用 parseInterpolation() 返回出来的节点
+      // 传入 context
+      node = parseInterpolation(context)
+    } else if (s[0] === '<') {
+      // 判断 Element 并且解析 Element 的逻辑 
+
+      // 判断第二个字符 是否是 a-z
+      if (/[a-z]/i.test(s[1])) {
+        // console.log("parse Element") // 命中 
+        // 解析 Element 的逻辑
+        // 把返回值放到 node 中
+        node = parseElement(context)
+      }
     }
+
+
+    // 默认 解析 Text , 当没有命中 Element 和 插值 时，解析 Text
+    if (!node) { // 如果 node 没有值时，解析 Text
+      node = parseText(context)
+    }
+
+    // 把生成的节点添加到 节点树 中 
+    nodes.push(node)
   }
-
-
-  // 默认 解析 Text , 当没有命中 Element 和 插值 时，解析 Text
-  if (!node) { // 如果 node 没有值时，解析 Text
-    node = parseText(context)
-  }
-
-  // 把生成的节点添加到 节点树 中 
-  nodes.push(node)
 
   // 最后返回 nodes -> 交给 createRoot 
   return nodes
 }
 
+// 判断是否循环的函数
+function isEnd(context, parseTag) {
+  // 2. 当 遇到 </div> 结束标签时候 停止循环
+  let s = context.source
+
+  /** 
+   * 因为这里是写死的标签 </div> 
+   * 分析：这个div 是 解析 element.children 时 一开始的 <$>, 所以可以基于这个开始的标签 进行验证
+   * 解决： 在  解析 element.children 传入解析好的 element.tag
+   * 
+  */
+  //  改为 parseTag
+  // 当 parseTag 为空时不用管
+  if (parseTag && s.startsWith(`</${parseTag}>`)) {
+    // if (s.startsWith("</div>")) {
+    // 返回 true
+    return true
+  }
+  // 1. 当 source 有值时候，返回 false
+  return !context.source
+
+}
 
 // 解析 Text 的逻辑 
 function parseText(context) {
+  // 2. 增加 解析 Text 的判断 
+  // 默认的解析 还是以 context.source.length 去获取 Text
+  let endIndex = context.source.length
+  // 如果 context.source 有 {{
+  let endToken = "{{"
+
+  // 判断 context.source 中是否有 {{ 
+  let index = context.source.indexOf(endToken)
+  if (index !== -1) {
+    // 如果 text 有 {{
+    // 修改 endIndex 的值
+    endIndex = index
+  }
+
+
+
   // 1. 获取 content 内容 
   // 值就是 context.source
-  const content = context.source.slice(0, context.source.length);
-  // console.log(content);
+  // const content = context.source.slice(0, context.source.length);
+  // 替换 index
+  const content = context.source.slice(0, endIndex);
+  // 此时解析出来的 content 为, hi, {{message}}</div>
+  // 进行完 第二步 完， content 解析到 hi, 
+  // console.log("-------", content);
 
   // 2. 删除 解析后的 text 
   advanceBy(context, content.length);
@@ -92,7 +144,14 @@ function parseElement(context: any) {
   // console.log(context)   // 传入 { source: '<div></div>' }
   // 抽离解析 Element 的逻辑
   // 添加解析的类型
-  const element = parseTag(context, TagType.Start)
+  const element: any = parseTag(context, TagType.Start)
+
+
+  // 1. element 具有 children ，因为 element 可能是嵌套的
+  // 所以 这里 递归调用 parseChildren 
+  // 传入 解析好的 element.tag 
+  element.children = parseChildren(context, element.tag)
+
 
   // 二次解析 Element 的逻辑 
   parseTag(context, TagType.End)

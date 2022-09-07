@@ -44,6 +44,7 @@ describe('Parse', () => {
       expect(ast.children[0]).toStrictEqual({
         type: NodeTypes.ELEMENT,
         tag: "div",
+        children: []
       })
     })
   })
@@ -62,6 +63,32 @@ describe('Parse', () => {
         // 解析出来的内容
         content: 'some text',
       })
+    })
+  })
+
+
+  // 解析三种联合类型 
+  // <div>hi, {{message}}</div>
+  test("hello world", () => {
+    const ast = baseParse("<div>hi, {{message}}</div>")
+
+    // 应该返回 root 树
+    expect(ast.children[0]).toStrictEqual({
+      type: NodeTypes.ELEMENT,
+      tag: "div",
+      children: [
+        {
+          type: NodeTypes.TEXT,
+          content: "hi, "
+        },
+        {
+          type: NodeTypes.INTERPOLATION,
+          content: {
+            type: NodeTypes.STATEFUL_COMPONENT,
+            content: "message"
+          }
+        }
+      ]
     })
   })
 })
