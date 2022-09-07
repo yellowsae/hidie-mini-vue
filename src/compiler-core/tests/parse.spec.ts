@@ -91,4 +91,41 @@ describe('Parse', () => {
       ]
     })
   })
+
+
+  // 测试联合解析 类型的其他情况 
+  /**
+   * 问题出现在 解析到<p></p> 时，parseText没有写 匹配解析 context.source 中有嵌套标签的逻辑， 
+   * 只是写了 {{ 的判断， 而没有写<p> 的判断 
+   * 
+   * 解决： 在 parseText 解析是 增加 解析 < 的逻辑 
+   */
+  test("Nested element", () => {
+    const ast = baseParse("<div><p>hi</p>{{message}}</div>")
+
+    // 应该返回 root 树
+    expect(ast.children[0]).toStrictEqual({
+      type: NodeTypes.ELEMENT,
+      tag: "div",
+      children: [
+        {
+          type: NodeTypes.ELEMENT,
+          tag: "p",
+          children: [
+            {
+              type: NodeTypes.TEXT,
+              content: "hi"
+            },
+          ]
+        },
+        {
+          type: NodeTypes.INTERPOLATION,
+          content: {
+            type: NodeTypes.STATEFUL_COMPONENT,
+            content: "message"
+          }
+        }
+      ]
+    })
+  })
 })

@@ -104,14 +104,22 @@ function parseText(context) {
   // 默认的解析 还是以 context.source.length 去获取 Text
   let endIndex = context.source.length
   // 如果 context.source 有 {{
-  let endToken = "{{"
 
-  // 判断 context.source 中是否有 {{ 
-  let index = context.source.indexOf(endToken)
-  if (index !== -1) {
-    // 如果 text 有 {{
-    // 修改 endIndex 的值
-    endIndex = index
+  // 解决 context.source 中有嵌套标签的逻辑
+  // 增加 < 
+  let endTokens = ["<", "{{"]
+
+  // 循环 判断
+  for (let i = 0; i < endTokens.length; i++) {
+    // 判断 context.source 中是否有 {{ 
+    let index = context.source.indexOf(endTokens[i])
+    // 如果 context.source 中同时有 < 和 {{,  尽可能往左取
+    if (index !== -1 && endIndex > index) {
+      // 如果 text 有 {{
+      // 修改 endIndex 的值  
+      endIndex = index
+    }
+
   }
 
 
