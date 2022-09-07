@@ -85,11 +85,15 @@ function isEnd(context, ancestors) {
   // 当解析到 结束标签时 
   if (s.startsWith("</")) {
     // 与 ancestors 中的数据进行对比 
-    for (let i = 0; i < ancestors.length; i++) {
+    // 优化: [] 应该从后面开始循环 
+    for (let i = ancestors.length - 1; i >= 0; i--) {
+      // for (let i = 0; i < ancestors.length; i++) {
       const tag = ancestors[i].tag
 
       // 截取出 div  对比  tag  
-      if (s.slice(2, 2 + tag.length) === tag) {
+      // 重构
+      if (startsWithEndTagOpen(s, tag)) {
+        // if (s.slice(2, 2 + tag.length) === tag) {
         return true
       }
     }
@@ -188,7 +192,10 @@ function parseElement(context: any, ancestors) {
   // 因为 开始标签 和 结束标签 不一致 
   // console.log("-----", element.tag, context.source) // ----- span </div>
   // 增加判断，如果匹配上标签 才执行 parseTag 
-  if (context.source.slice(2, 2 + element.tag.length) === element.tag) {
+  // 重构 
+  // - 抽离判断的逻辑 
+  if (startsWithEndTagOpen(context.source, element.tag)) {
+    // if (context.source.slice(2, 2 + element.tag.length) === element.tag) {
     // 二次解析 Element 的逻辑 
     parseTag(context, TagType.End)
     // console.log(context.source)  // 删除全部标签代码 
@@ -202,6 +209,10 @@ function parseElement(context: any, ancestors) {
   return element
 }
 
+// 重构
+function startsWithEndTagOpen(source, tag) {
+  return source.startsWith("</") && source.slice(2, 2 + tag.length).toLowerCase() === tag.toLowerCase()
+}
 
 // 抽离 解析 tag 的逻辑 
 function parseTag(context, type: TagType) {
