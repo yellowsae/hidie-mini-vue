@@ -5,7 +5,7 @@
  *  2. 深度优先遍历 搜索 需要修改的 text 
  *  3. 修改 text 的内容   
  */
-export function transform(root, options) { // root 根节点 
+export function transform(root, options = {}) { // root 根节点 
   // 传入options -> 用于修改数据的 
   // 使用创建一个全局上下文对象 -> 和实现 baseParse 的一样
   const context = createTransformerContext(root, options);
@@ -18,8 +18,17 @@ export function transform(root, options) { // root 根节点
 
   // 2. 修改 content 的内容 
 
+
+  // 创建一个 childrenRoot, 设置 root的根节点 
+  // 在 codegen 使用 
+  createRootCodegen(root)
+
 }
 
+function createRootCodegen(root) {
+  // 设置 root.children[0]  根节点 -> 在 codegen 使用 
+  root.codegenNode = root.children[0]
+}
 
 // 全局上下文对象 context
 function createTransformerContext(root, options) {

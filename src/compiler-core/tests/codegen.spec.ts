@@ -1,0 +1,25 @@
+import { generate } from "../src/codegen"
+import { baseParse } from "../src/parse"
+import { transform } from "../src/transform"
+
+
+describe('codegen', () => {
+
+  // 解析 string 
+  it('string', () => {
+
+    // hi 转为 render 返回的字符串 
+    const ast = baseParse('hi')
+    transform(ast)
+
+    // 把 ast 树传给 generate() 
+    const { code } = generate(ast)
+
+    // 断言
+    // 使用快照测试 -> 把 code 拍个照片， 然后进行对比
+    // 1. 抓 bug 
+    // 2.  更新 快照
+    // 生成 snapshot 文件夹，存放 快照
+    expect(code).toMatchSnapshot()
+  })
+})
