@@ -78,11 +78,11 @@ function traverseNode(node: any, context) {
 
 function traverseChildren(node, context) {
   // 重构 抽离 处理 深度优先遍历的 children 逻辑 
-  let children = node.children
+  const children = node.children
 
-  // 当 node.children 有值时
+  // 当 children 有值时
   // 递归执行深度优先遍历 - 程序稳定点
-  if (node.children) {
+  if (children) {
     // 循环 children
     for (let i = 0; i < children.length; i++) {
       // 取值
