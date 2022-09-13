@@ -305,7 +305,8 @@ function advanceBy(context: any, length: number) {
 function createRoot(children) {
   // 功能 : 返回一个对象， 这个对象具有一个 children
   return {
-    children
+    children,
+    type: NodeTypes.ROOT
   }
 }
 

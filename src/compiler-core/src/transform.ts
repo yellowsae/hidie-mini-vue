@@ -1,3 +1,5 @@
+import { NodeTypes } from "./ast";
+import { TO_DISPLAY_STRING } from "./runtimeHelpers";
 
 /**
  * 实现：
@@ -23,6 +25,11 @@ export function transform(root, options = {}) { // root 根节点
   // 在 codegen 使用 
   createRootCodegen(root)
 
+
+
+  // 给 root 根节点 赋值 helpers 
+  // [] =  ...context.helpers.keys()  map 中所有的 key 返回一个数组, 方便再 codegen 使用
+  root.helpers = [...context.helpers.keys()]
 }
 
 function createRootCodegen(root) {
@@ -36,7 +43,12 @@ function createTransformerContext(root, options) {
   const context = {
     // 存入 root 和 nodeTransformer
     root,
-    nodeTransformer: options.nodeTransformer || []
+    nodeTransformer: options.nodeTransformer || [],
+    helpers: new Map(),
+    // 把 toDisplayString 方法 存放到 map 上
+    helper: (key) => {
+      context.helpers.set(key, 1)
+    }
   }
   return context
 }
@@ -67,9 +79,23 @@ function traverseNode(node: any, context) {
   }
   // 修改 element
 
+  // 实现 给 helpers 赋值 
+  switch (node.type) {
+    // 当 node.type 为插值时 
+    case NodeTypes.INTERPOLATION:
+      // 因为不能保证 此时的 node 为根节点 , 所以把 helpers 赋值到 context 上 
+      context.helper(TO_DISPLAY_STRING)
+      break
+    case NodeTypes.ELEMENT:
+    case NodeTypes.ROOT:
+      // 遍历 children , 因为只有  Element 和 Root 才有 children
+      traverseChildren(node, context)
+  }
+
+
 
   // // 重构 抽离 处理 深度优先遍历的 children 逻辑 
-  traverseChildren(node, context)
+  // traverseChildren(node, context)
   // let children = node.children
 
   // // 当 node.children 有值时

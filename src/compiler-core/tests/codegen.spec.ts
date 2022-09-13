@@ -1,6 +1,7 @@
 import { generate } from "../src/codegen"
 import { baseParse } from "../src/parse"
 import { transform } from "../src/transform"
+import { transfromExpression } from "../src/transform/transformExpression"
 
 
 describe('codegen', () => {
@@ -20,6 +21,21 @@ describe('codegen', () => {
     // 1. 抓 bug 
     // 2.  更新 快照
     // 生成 snapshot 文件夹，存放 快照
+    expect(code).toMatchSnapshot()
+  })
+
+
+
+  // 解析 插值 {{}}
+  it('interpolation', () => {
+    const ast = baseParse('{{ message }}')
+
+    // 传入 需要生成 _ctx 的函数 
+    transform(ast, {
+      nodeTransformer: [transfromExpression]
+    })
+    // code 
+    const { code } = generate(ast)
     expect(code).toMatchSnapshot()
   })
 })
