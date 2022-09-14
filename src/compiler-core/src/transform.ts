@@ -75,7 +75,7 @@ function traverseNode(node: any, context) {
     const transform = nodeTransformer[i]
     // 调用 
     // 并且把 node 节点传给 修改数据的函数
-    transform(node)
+    transform(node, context)
   }
   // 修改 element
 

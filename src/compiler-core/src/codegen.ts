@@ -1,5 +1,5 @@
 import { NodeTypes } from "./ast"
-import { helperMapName, TO_DISPLAY_STRING } from "./runtimeHelpers"
+import { CREATE_ELEMENT_BLOCK, helperMapName, TO_DISPLAY_STRING } from "./runtimeHelpers"
 
 
 
@@ -135,9 +135,25 @@ function genNode(node, context) {
     case NodeTypes.INTERPOLATION:
       genInterpolation(node, context)
       break;
-  }
 
+    // 处理 Element
+    case NodeTypes.ELEMENT:
+      genElement(node, context)
+      break;
+  }
 }
+
+// 处理 render 函数返回值为 Element  
+function genElement(node, context) {
+  const { push, helper } = context
+  const { tag } = node
+  push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}")`)
+
+  // 伪实现
+  // push(`_createElementBlock("div")`)
+}
+
+
 
 // 处理 {{messag}}-> 生成 render 函数的返回内容
 function genExpression(node, context) {

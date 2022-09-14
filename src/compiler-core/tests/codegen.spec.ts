@@ -1,6 +1,7 @@
 import { generate } from "../src/codegen"
 import { baseParse } from "../src/parse"
 import { transform } from "../src/transform"
+import { transformElement } from "../src/transform/transformElement"
 import { transfromExpression } from "../src/transform/transformExpression"
 
 
@@ -38,4 +39,19 @@ describe('codegen', () => {
     const { code } = generate(ast)
     expect(code).toMatchSnapshot()
   })
+
+
+  // 实现 element
+  it('element', () => {
+    const ast = baseParse('<div></div>')
+
+    // 传入 需要生成 createElementBlock 的函数 
+    transform(ast, {
+      nodeTransformer: [transformElement]
+    })
+    // code 
+    const { code } = generate(ast)
+    expect(code).toMatchSnapshot()
+  })
+
 })

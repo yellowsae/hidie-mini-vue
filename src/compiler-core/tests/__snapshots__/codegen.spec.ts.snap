@@ -1,5 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`codegen element 1`] = `
+"import { createElementBlock as _createElementBlock } from \\"vue\\"
+return function render(_ctx, _cache) {return _createElementBlock(\\"div\\")}"
+`;
+
 exports[`codegen interpolation 1`] = `
 "import { toDisplayString as _toDisplayString } from \\"vue\\"
 return function render(_ctx, _cache) {return _toDisplayString(_ctx.message)}"
