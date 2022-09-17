@@ -62,7 +62,8 @@ describe('codegen', () => {
 
     // 传入 需要生成 createElementBlock 的函数 
     transform(ast, {
-      nodeTransformer: [transformElement, transformText]
+      // 换位 -> 最后才去执行 
+      nodeTransformer: [transformText, transformElement]
     })
 
     // 检查看中间层 

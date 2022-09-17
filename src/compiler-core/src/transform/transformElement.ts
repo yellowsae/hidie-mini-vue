@@ -13,5 +13,38 @@ export function transformElement(node, context) {
 
     // 传入使用的常量  createElementBlock
     context.helper(CREATE_ELEMENT_BLOCK)
+
+
+    // 中间处理层 
+
+
+
+    // 1. tag 
+    const vnodeTag = node.tag
+
+
+    // 2. props 
+    let vnodeProps;
+
+
+    // 3. children
+
+    const children = node.children
+    // 中间层
+    let vnodeChildren = children[0]
+
+
+
+    // 4. 封装 element
+    const vnodeElement = {
+      type: NodeTypes.ELEMENT,
+      tag: vnodeTag,
+      props: vnodeProps,
+      children: vnodeChildren
+    }
+
+
+    // 把 vnodeElement 赋值给 node ， 赋值到 codegenNode 上
+    node.codegenNode = vnodeElement
   }
 }

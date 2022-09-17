@@ -33,8 +33,15 @@ export function transform(root, options = {}) { // root 根节点
 }
 
 function createRootCodegen(root) {
-  // 设置 root.children[0]  根节点 -> 在 codegen 使用 
-  root.codegenNode = root.children[0]
+
+  const child = root.children[0]
+  // 判断 child 是否为 Element
+  if (child.type === NodeTypes.ELEMENT) {
+    root.codegenNode = child.codegenNode
+  } else {
+    // 设置 root.children[0]  根节点 -> 在 codegen 使用 
+    root.codegenNode = root.children[0]
+  }
 }
 
 // 全局上下文对象 context

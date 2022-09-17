@@ -180,8 +180,6 @@ function genElement(node, context) {
   const { tag, children } = node
   // push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}")`)
 
-
-  console.log(children)
   /**
    * 根据 element 的 children 生成 children 的逻辑
    * - 可以循环 children, 然后递归遍历 genNode 
@@ -191,16 +189,23 @@ function genElement(node, context) {
    *    
    *   - 实现: 在 transformText 中处理 , 添加中间层 
    */
+  console.log('children', children)
+  // 不需要下边的循环了， 改为 children[0] 中间层
+  // const child = children[0]
+
+  // 重构 element的 children  -> 让它赋值为 node.children
+
 
   // 实现三种联合解析 
   // push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}", null, 'hi, ' + _toDisplayString(_ctx.message))`)
   push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}", null, `)
 
-  for (let i = 0; i < children.length; i++) {
-    const child = children[i]
-    // 递归调用 genNode ->  switch 选中中间层 compound  -> 生成 + 号
-    genNode(child, context)
-  }
+  genNode(children, context)
+  // for (let i = 0; i < children.length; i++) {
+  //   const child = children[i]
+  //   // 递归调用 genNode ->  switch 选中中间层 compound  -> 生成 + 号
+  //   genNode(child, context)
+  // }
   push(')')
 
 
