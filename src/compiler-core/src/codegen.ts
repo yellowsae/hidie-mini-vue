@@ -1,3 +1,4 @@
+import { isString } from "../../shared"
 import { NodeTypes } from "./ast"
 import { CREATE_ELEMENT_BLOCK, helperMapName, TO_DISPLAY_STRING } from "./runtimeHelpers"
 
@@ -140,14 +141,68 @@ function genNode(node, context) {
     case NodeTypes.ELEMENT:
       genElement(node, context)
       break;
+
+
+    // 处理中间层 compound 
+    case NodeTypes.COMPOUND_EXPRESSION:
+      genCompoundExpression(node, context)
+      break;
+  }
+
+}
+
+// 处理中间层 
+function genCompoundExpression(node, context) {
+  const { push } = context
+  // compound.children -> 一个数组
+  const children = node.children
+
+  // for 循环 
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i]
+    // 判断当前节点是不是一个 string 
+    // 也就是 判断是不是 + 号
+    if (isString(child)) {
+      push(child)
+    } else {
+      // 如果不是 + 号 ， 那就是 text | 插值 
+      // 执行 genNode 递归调用就行
+      genNode(child, context)
+    }
   }
 }
+
 
 // 处理 render 函数返回值为 Element  
 function genElement(node, context) {
   const { push, helper } = context
-  const { tag } = node
-  push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}")`)
+  // 取出children
+  const { tag, children } = node
+  // push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}")`)
+
+
+  console.log(children)
+  /**
+   * 根据 element 的 children 生成 children 的逻辑
+   * - 可以循环 children, 然后递归遍历 genNode 
+   * - 出现问题
+   *   - 拼接时候少了 + 号 和 _ctx
+   * - 解决： 可以声明一个新的节点类型 ， 在element下面生成 (中间层类型 compound)， text 和 插值 的组合, 然后处理这个类型时候 添加上 + 号
+   *    
+   *   - 实现: 在 transformText 中处理 , 添加中间层 
+   */
+
+  // 实现三种联合解析 
+  // push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}", null, 'hi, ' + _toDisplayString(_ctx.message))`)
+  push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}", null, `)
+
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i]
+    // 递归调用 genNode ->  switch 选中中间层 compound  -> 生成 + 号
+    genNode(child, context)
+  }
+  push(')')
+
 
   // 伪实现
   // push(`_createElementBlock("div")`)

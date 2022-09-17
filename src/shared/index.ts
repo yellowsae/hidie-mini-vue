@@ -4,6 +4,11 @@ export function isObject(obj: any) {
   return obj !== null && typeof obj === 'object'
 }
 
+
+export function isString(value: any) {
+  return typeof value === 'string'
+}
+
 //  hasChanged 是否改变
 export const hasChanged = (newValue, value) => {
   // 如果它们相等 ，返回 false

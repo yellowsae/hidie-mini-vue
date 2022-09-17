@@ -8,5 +8,6 @@ export const enum NodeTypes {
   STATEFUL_COMPONENT,
   ELEMENT,
   TEXT,
-  ROOT
+  ROOT,
+  COMPOUND_EXPRESSION
 }

@@ -3,6 +3,7 @@ import { baseParse } from "../src/parse"
 import { transform } from "../src/transform"
 import { transformElement } from "../src/transform/transformElement"
 import { transfromExpression } from "../src/transform/transformExpression"
+import { transformText } from "../src/transform/transformText"
 
 
 describe('codegen', () => {
@@ -42,13 +43,31 @@ describe('codegen', () => {
 
 
   // 实现 element
-  it('element', () => {
+  it.skip('element', () => {
     const ast = baseParse('<div></div>')
 
     // 传入 需要生成 createElementBlock 的函数 
     transform(ast, {
       nodeTransformer: [transformElement]
     })
+    // code 
+    const { code } = generate(ast)
+    expect(code).toMatchSnapshot()
+  })
+
+
+  // 实现 3 中联合类型 
+  it('element', () => {
+    const ast: any = baseParse('<div>hi, {{message}}</div>')
+
+    // 传入 需要生成 createElementBlock 的函数 
+    transform(ast, {
+      nodeTransformer: [transformElement, transformText]
+    })
+
+    // 检查看中间层 
+    console.log('ast--------', ast, 'compound-------', ast.codegenNode.children)
+
     // code 
     const { code } = generate(ast)
     expect(code).toMatchSnapshot()
