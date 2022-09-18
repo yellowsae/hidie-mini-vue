@@ -3,12 +3,11 @@
 // 实现中间层的逻辑 
 
 import { NodeTypes } from "../ast";
+import { isText } from "../utils";
 
 export function transformText(node, context) {
 
-  function isText(node) {
-    return node.type === NodeTypes.TEXT || node.type === NodeTypes.INTERPOLATION
-  }
+  // 重构
 
 
   // 当是 element 类型时， 才会添加中间层

@@ -190,7 +190,7 @@ function genElement(node, context) {
    *    
    *   - 实现: 在 transformText 中处理 , 添加中间层 
    */
-  console.log('children', children)
+  // console.log('children', children)
   // 不需要下边的循环了， 改为 children[0] 中间层
   // const child = children[0]
 

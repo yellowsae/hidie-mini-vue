@@ -2,8 +2,7 @@
 
 // 处理 添加 helper 函数的逻辑 
 
-import { NodeTypes } from "../ast";
-import { CREATE_ELEMENT_BLOCK } from "../runtimeHelpers";
+import { createVNodeCall, NodeTypes } from "../ast";
 
 
 export function transformElement(node, context) {
@@ -15,7 +14,8 @@ export function transformElement(node, context) {
     // 返回一个函数， 也就是在 transform 需要收集的 退出函数 
     return () => {
       // 传入使用的常量  createElementBlock
-      context.helper(CREATE_ELEMENT_BLOCK)
+      // 改为在 createVNodeCall 中添加 helper
+      // context.helper(CREATE_ELEMENT_BLOCK)
 
 
       // 中间处理层 
@@ -38,18 +38,18 @@ export function transformElement(node, context) {
       let vnodeChildren = children[0]
 
 
-
-      // 4. 封装 element
-      const vnodeElement = {
-        type: NodeTypes.ELEMENT,
-        tag: vnodeTag,
-        props: vnodeProps,
-        children: vnodeChildren
-      }
+      // 重构为 createVNodeCall() 函数
+      // // 4. 封装 element
+      // const vnodeElement = {
+      //   type: NodeTypes.ELEMENT,
+      //   tag: vnodeTag,
+      //   props: vnodeProps,
+      //   children: vnodeChildren
+      // }
 
 
       // 把 vnodeElement 赋值给 node ， 赋值到 codegenNode 上
-      node.codegenNode = vnodeElement
+      node.codegenNode = createVNodeCall(context, vnodeTag, vnodeProps, vnodeChildren)
     }
   }
 }

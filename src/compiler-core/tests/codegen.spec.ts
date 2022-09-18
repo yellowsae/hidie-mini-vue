@@ -72,7 +72,7 @@ describe('codegen', () => {
     })
 
     // 检查看中间层 
-    console.log('ast--------', ast, 'compound-------', ast.codegenNode.children)
+    // console.log('ast--------', ast, 'compound-------', ast.codegenNode.children)
 
     // code 
     const { code } = generate(ast)
