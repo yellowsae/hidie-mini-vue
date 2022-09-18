@@ -76,13 +76,23 @@ function traverseNode(node: any, context) {
   // 改为使用 nodeTransformer
   // 取出 nodeTransformer 
   const nodeTransformer = context.nodeTransformer
+
+
+  // 保存退出函数
+  const exitFns: any = []
+
   // for 循环 遍历 
   for (let i = 0; i < nodeTransformer.length; i++) {
     // 取出 修改数据的函数 
     const transform = nodeTransformer[i]
     // 调用 
     // 并且把 node 节点传给 修改数据的函数
-    transform(node, context)
+    // 调用 transform 函数后， 会返回一个退出函数 ， 保存起来
+    const onExit = transform(node, context)
+
+    // 收集退出函数
+    if (onExit) exitFns.push(onExit)
+
   }
   // 修改 element
 
@@ -99,6 +109,13 @@ function traverseNode(node: any, context) {
       traverseChildren(node, context)
   }
 
+
+  // 在这里执行退出函数
+  // 先调用的后执行， 后调用的先执行
+  let i = exitFns.length
+  while (i--) { // i-- ,  i 不会越界
+    exitFns[i]()
+  }
 
 
   // // 重构 抽离 处理 深度优先遍历的 children 逻辑 

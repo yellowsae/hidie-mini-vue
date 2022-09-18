@@ -63,7 +63,12 @@ describe('codegen', () => {
     // 传入 需要生成 createElementBlock 的函数 
     transform(ast, {
       // 换位 -> 最后才去执行 
-      nodeTransformer: [transformText, transformElement]
+      // 加上 transformExpression -> 当解析到 {{}} 时， 会调用 transformExpression 在前面加上 _ctx 
+      // 但是此时 添加了 compound 类型后，  没有 插值类型了{{}} ， 所以加上 transformExpression 后，没有任何变化
+      // 解决：使用先进入，后执行的策略, 把下面的 transform 函数由后往前执行
+
+      // 执行顺序: 先去修改 ast 解构 , 再去赋值创建中间节点
+      nodeTransformer: [transfromExpression, transformElement, transformText]
     })
 
     // 检查看中间层 
