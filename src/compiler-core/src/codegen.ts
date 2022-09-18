@@ -177,7 +177,8 @@ function genCompoundExpression(node, context) {
 function genElement(node, context) {
   const { push, helper } = context
   // 取出children
-  const { tag, children } = node
+  // 取出 props
+  const { tag, children, props } = node
   // push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}")`)
 
   /**
@@ -198,9 +199,17 @@ function genElement(node, context) {
 
   // 实现三种联合解析 
   // push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}", null, 'hi, ' + _toDisplayString(_ctx.message))`)
-  push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}", null, `)
+  // push(`${helper(CREATE_ELEMENT_BLOCK)}("${tag}", ${props}, `)
 
-  genNode(children, context)
+  // 处理 tag | props | children 的逻辑
+  push(`${helper(CREATE_ELEMENT_BLOCK)}(`)
+
+  // 处理 props tag children 为 undefined 的情况
+  // 如果是 undefined , 把它赋值为 null, 因为返回值是 [], 使用 genNodeList() 处理
+  genNodeList(genNullable([tag, props, children]), context)
+
+
+  // genNode(children, context)
   // for (let i = 0; i < children.length; i++) {
   //   const child = children[i]
   //   // 递归调用 genNode ->  switch 选中中间层 compound  -> 生成 + 号
@@ -213,6 +222,33 @@ function genElement(node, context) {
   // push(`_createElementBlock("div")`)
 }
 
+
+
+// 处理 tag | props | children 的逻辑
+function genNodeList(nodes, context) {
+  const { push } = context
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i]
+    // 判断 
+    if (isString(node)) {
+      push(node)
+    } else {
+      genNode(node, context)
+    }
+
+    // 添加 ,
+    if (i < nodes.length - 1) {
+      push(', ')
+    }
+  }
+}
+
+
+
+// 处理 tag | props | children 是否为 undefined 的情况
+function genNullable(args: any) {
+  return args.map(arg => arg || 'null')
+}
 
 
 // 处理 {{messag}}-> 生成 render 函数的返回内容

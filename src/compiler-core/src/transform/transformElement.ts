@@ -23,7 +23,8 @@ export function transformElement(node, context) {
 
 
       // 1. tag 
-      const vnodeTag = node.tag
+      // tag 加上 ''  
+      const vnodeTag = `'${node.tag}'`
 
 
       // 2. props 
