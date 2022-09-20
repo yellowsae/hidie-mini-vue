@@ -43,7 +43,7 @@ describe('codegen', () => {
 
 
   // 实现 element
-  it.skip('element', () => {
+  it('element', () => {
     const ast = baseParse('<div></div>')
 
     // 传入 需要生成 createElementBlock 的函数 

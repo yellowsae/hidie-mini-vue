@@ -98,7 +98,7 @@ function getFunctionPreamble(ast, context) {
 
   // 判断 ast.helpers -> 因为 处理 text 不需要 导入 
   if (ast.helpers.length > 0) {
-    push(`const { ${ast.helpers.map(aliasHelper).join(', ')} } = "${VueBinding}"`)
+    push(`const { ${ast.helpers.map(aliasHelper).join(', ')} } = ${VueBinding}`)
   }
   push('\n')
   // 伪实现
