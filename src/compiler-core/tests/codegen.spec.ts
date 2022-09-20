@@ -57,6 +57,7 @@ describe('codegen', () => {
 
 
   // 实现 3 中联合类型 
+  // 也是 compiler 的核心模板 - 最终实现结果
   it('element', () => {
     const ast: any = baseParse('<div>hi, {{message}}</div>')
 
@@ -78,5 +79,6 @@ describe('codegen', () => {
     const { code } = generate(ast)
     expect(code).toMatchSnapshot()
   })
+  // 把 compiler 模块导出
 
 })

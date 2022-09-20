@@ -966,7 +966,7 @@ export function createRenderer(options) { // 接收 options 参数
         // subTree 是 h() 函数返回的 vnode, 也是虚拟节点树 subTree 
 
         // 使用 instance.subTree 存储  subTree, 在更新时候需要用， 需要在 component 初始化 subTree 
-        const subTree = (instance.subTree = instance.render.call(proxy))  // 绑定 proxy
+        const subTree = (instance.subTree = instance.render.call(proxy, proxy))  // 绑定 proxy , 再次传入 proxy 解决 编译时候message插值的问题 
         // const subTree = instance.render.call(proxy)  // 绑定 proxy
 
 
@@ -1011,7 +1011,7 @@ export function createRenderer(options) { // 接收 options 参数
 
         const { proxy } = instance
         // 拿到更新后的 subTree
-        const subTree = instance.render.call(proxy)
+        const subTree = instance.render.call(proxy, proxy)
 
         // 取出 之前保存上一次组件的 subTree 
         const prevSubTree = instance.subTree

@@ -179,6 +179,24 @@ function handleStupResult(instance, stupResult: any) {
 function finishComponentSetup(instance: any) {
   const Component = instance.type
 
+  // 当用于写没有写 render 而是写 template 时， 把 template 转为 render() 函数
+  // template
+  // 这里不直接 在 runtime-core 中直接引入 compiler 模块的内容 
+  // vue设计时候 用于区分 运行时， 和 编译器 的功能的 
+  // 而是基于 最终导出的 index.ts 用于区分模块 
+
+  // 这里使用 传入过来的 compiler 
+  if (compiler && !Component.render) {
+    // 编译器是否存在 && 用户没有写了render函数（取反 -> 因为用户写的 render 函数优先级最高）
+
+    // 看看 用户是否提供了 template
+    if (Component.template) {
+      // 如果有 template 调用 compiler 把 template 转为 render 函数， 并赋值到 Component.render
+      Component.render = compiler(Component.template)
+    }
+  }
+
+
   // 判断组件中是否具有 render() 
   // 组件中具有 render(), 将 render 挂载到 instance 上
   instance.render = Component.render
@@ -208,4 +226,19 @@ function setCurrentInstance(instance) {
   // 可以封装一个函数给 currentInstance 赋值
   // 这样在之后调式代码时 在这个打上断点， 方便调式
   currentInstance = instance
+}
+
+
+// 代码传值策略 ， 用于接收 render 函数
+// 定义一个全局变量 
+let compiler
+
+
+// 把这个函数导出去 -> 在 vue 的入口使用
+export function registerRuntimeCompiler(_compiler) {
+  // 接收 _compiler -> 传入过来的 compiler 模块 函数
+  // _compiler 是一个函数
+
+  // 赋值到全局变量进行保存 
+  compiler = _compiler
 }

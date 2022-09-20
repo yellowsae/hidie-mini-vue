@@ -8,7 +8,7 @@
 export { h } from "./h"
 export { renderSlots } from "./helper/renderSlot"
 export { createTextNode } from "./vnode"
-export { getCurrentInstance } from "./component"
+export { getCurrentInstance, registerRuntimeCompiler } from "./component"
 export { inject, provide } from "./apiInject"
 // 导出自定义渲染器
 export { createRenderer } from "./renderer"
