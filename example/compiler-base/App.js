@@ -1,11 +1,14 @@
 
+import { ref } from '../../lib/guide-mini-vue.esm.js'
 
 export const App = {
   name: 'App',
-  template: `<div>hi , {{message}}</div>`,
+  template: `<div>hi , {{ count }}</div> `,
   setup() {
+    const count = (window.count = ref(1))
     return {
-      message: 'hi, mini vue'
+      count: count,
+      message: count
     }
   }
 }

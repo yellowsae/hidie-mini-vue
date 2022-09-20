@@ -10,6 +10,12 @@ export const Fragment = Symbol('Fragment')
 // 定义 Text 节点类型
 export const Text = Symbol('Text')
 
+
+// 解决 createElementBlock 报错
+// createElementBlock 方法 和 createVNode 一样 
+export { createVNode as createElementBlock }
+
+
 export function createVNode(type, props?, children?) {
   // 参数：
   // type -> 组件类型

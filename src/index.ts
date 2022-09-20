@@ -10,7 +10,6 @@
 
 // 导出 runtime-dom
 export * from "./runtime-dom"
-export * from "./reactivity"
 
 
 import { registerRuntimeCompiler } from "./runtime-dom"
@@ -24,6 +23,7 @@ import * as runtimeDom from "./runtime-dom"
 
 // baseCompiler() 会返回 { code }
 // 而最终需要的是 编译为 render() 函数 
+
 
 // 实现 1. 基于 compilerToFunction 接收  template 用户传入的 template
 function compilerToFunction(template) {

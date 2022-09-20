@@ -1,3 +1,7 @@
+
+// 导出 方法
+export * from './toDisplayString'
+
 export const extend = Object.assign
 
 export function isObject(obj: any) {

@@ -7,13 +7,16 @@
 
 export { h } from "./h"
 export { renderSlots } from "./helper/renderSlot"
-export { createTextNode } from "./vnode"
+export { createTextNode, createElementBlock } from "./vnode"
 export { getCurrentInstance, registerRuntimeCompiler } from "./component"
 export { inject, provide } from "./apiInject"
 // 导出自定义渲染器
 export { createRenderer } from "./renderer"
 export { nextTick } from "./scheduler"
 
+// 这里导出 toDisplayString 方法
+export { toDisplayString } from "../shared"
+export * from "../reactivity"
 
 
 
