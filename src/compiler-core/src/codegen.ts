@@ -89,16 +89,16 @@ export function generate(ast) {
 // 处理 编译器 头部导入模块的逻辑 
 function getFunctionPreamble(ast, context) {
   const { push } = context
-  const VueBinding = "vue"
+  const VueBinding = "Vue"
   // const helpers = ['toDisplayString']  
   // helpers 应该存放到 transform 的逻辑上 , 绑定到 ast 树的根节点上 
   // 重命名 
-  const aliasHelper = (s) => `${helperMapName[s]} as _${helperMapName[s]}`
+  const aliasHelper = (s) => `${helperMapName[s]}: _${helperMapName[s]}`
   // 改为使用 ast.helpers 
 
   // 判断 ast.helpers -> 因为 处理 text 不需要 导入 
   if (ast.helpers.length > 0) {
-    push(`import { ${ast.helpers.map(aliasHelper).join(', ')} } from "${VueBinding}"`)
+    push(`const { ${ast.helpers.map(aliasHelper).join(', ')} } = "${VueBinding}"`)
   }
   push('\n')
   // 伪实现

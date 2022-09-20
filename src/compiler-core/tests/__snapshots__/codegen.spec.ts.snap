@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`codegen element 1`] = `
-"import { toDisplayString as _toDisplayString, createElementBlock as _createElementBlock } from \\"vue\\"
+"const { toDisplayString: _toDisplayString, createElementBlock: _createElementBlock } = \\"Vue\\"
 return function render(_ctx, _cache) {return _createElementBlock('div', null, 'hi, ' + _toDisplayString(_ctx.message))}"
 `;
 
@@ -11,7 +11,7 @@ return function render(_ctx, _cache) {return _createElementBlock(\\"div\\")}"
 `;
 
 exports[`codegen interpolation 1`] = `
-"import { toDisplayString as _toDisplayString } from \\"vue\\"
+"const { toDisplayString: _toDisplayString } = \\"Vue\\"
 return function render(_ctx, _cache) {return _toDisplayString(_ctx.message)}"
 `;
 
