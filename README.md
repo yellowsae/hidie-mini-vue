@@ -10,7 +10,7 @@ pnpm i
 pnpm dev
 ```
 
-# 📃 Documentation
+# 📃 Docs
 [https://www.yuque.com/yellowsea/wuzc60](https://www.yuque.com/yellowsea/wuzc60)
 
 
